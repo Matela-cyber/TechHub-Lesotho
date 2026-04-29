@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   signInWithEmailAndPassword,
   signOut,
@@ -8,7 +8,7 @@ import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { toast } from "react-toastify";
-import ReCAPTCHA from "react-google-recaptcha";
+// Removed ReCAPTCHA
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -46,16 +46,11 @@ const Login = () => {
     }
     setRegisterLoading(false);
   };
-  const [captchaVerified, setCaptchaVerified] = useState(false);
-  const recaptchaRef = useRef();
+  // Removed CAPTCHA state
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    if (!captchaVerified) {
-      toast.error("Please verify the CAPTCHA.");
-      return;
-    }
-
+  const handleLogin = async (e) => {
+    e.preventDefault();
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -84,14 +79,11 @@ const Login = () => {
       setErrorMessage("Invalid email or password.");
       toast.error("Invalid email or password.");
 
-      setCaptchaVerified(false);
-      recaptchaRef.current.reset();
+      // No CAPTCHA to reset
     }
   };
 
-  const handleCaptchaVerification = (value) => {
-    setCaptchaVerified(!!value);
-  };
+  // Removed CAPTCHA handler
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -101,7 +93,13 @@ const Login = () => {
           <div className="mb-4 text-red-500">{errorMessage}</div>
         )}
         {showRegister ? (
-          <>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleRegister();
+            }}
+            className="space-y-4"
+          >
             <input
               className="border p-2 w-full mb-4"
               type="email"
@@ -118,20 +116,21 @@ const Login = () => {
             />
             <button
               className="bg-green-500 text-white p-2 w-full rounded hover:bg-green-600 mb-2"
-              onClick={handleRegister}
+              type="submit"
               disabled={registerLoading}
             >
               {registerLoading ? "Registering..." : "Register Admin"}
             </button>
             <button
               className="text-blue-500 underline w-full"
+              type="button"
               onClick={() => setShowRegister(false)}
             >
               Back to Login
             </button>
-          </>
+          </form>
         ) : (
-          <>
+          <form onSubmit={handleLogin} className="space-y-4">
             <input
               className="border p-2 w-full mb-4"
               type="email"
@@ -146,26 +145,20 @@ const Login = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <ReCAPTCHA
-              sitekey="6LddLgYrAAAAAHVincfRV9vd1Qy_cyez6HHBmMuv"
-              onChange={handleCaptchaVerification}
-              ref={recaptchaRef}
-              className="mb-4"
-            />
             <button
               className="bg-blue-500 text-white p-2 w-full rounded hover:bg-blue-600 mb-2"
-              onClick={handleLogin}
-              disabled={!captchaVerified}
+              type="submit"
             >
               Login
             </button>
             <button
               className="text-green-500 underline w-full"
+              type="button"
               onClick={() => setShowRegister(true)}
             >
               Register Admin
             </button>
-          </>
+          </form>
         )}
       </div>
     </div>
