@@ -86,11 +86,6 @@ const AddProduct = () => {
   const [specKey, setSpecKey] = useState("");
   const [specValue, setSpecValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imageFiles, setImageFiles] = useState({
-    image: null,
-    image2: null,
-    image3: null,
-  });
   const [slugAvailability, setSlugAvailability] = useState({
     checked: false,
     available: false,

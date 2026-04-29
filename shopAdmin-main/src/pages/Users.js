@@ -14,7 +14,6 @@ import {
   Calendar,
   LogIn,
   Chrome,
-  ExternalLink,
   Package,
   ShoppingBag,
   Slash,
