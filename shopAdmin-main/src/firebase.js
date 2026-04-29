@@ -30,7 +30,7 @@ console.log("Firebase Configuration Status:", {
 });
 
 // Initialize Firebase app with error handling
-let app, auth, db, storage;
+let app, auth, db;
 
 try {
   // Check if all required config values are present
