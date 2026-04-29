@@ -5,14 +5,14 @@ import {
   browserLocalPersistence,
 } from "firebase/auth";
 import { initializeFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+// import { getStorage } from "firebase/storage"; // Storage removed
 
 // Firebase configuration using environment variables only
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  // storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET, // Storage removed
   messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.REACT_APP_FIREBASE_APP_ID,
 };
@@ -22,7 +22,7 @@ console.log("Firebase Configuration Status:", {
   apiKey: firebaseConfig.apiKey ? "Configured" : "Missing",
   authDomain: firebaseConfig.authDomain ? "Configured" : "Missing",
   projectId: firebaseConfig.projectId ? "Configured" : "Missing",
-  storageBucket: firebaseConfig.storageBucket ? "Configured" : "Missing",
+  // storageBucket: firebaseConfig.storageBucket ? "Configured" : "Missing", // Storage removed
   messagingSenderId: firebaseConfig.messagingSenderId
     ? "Configured"
     : "Missing",
@@ -38,7 +38,7 @@ try {
     "apiKey",
     "authDomain",
     "projectId",
-    "storageBucket",
+    // "storageBucket", // Storage removed
     "messagingSenderId",
     "appId",
   ];
@@ -64,8 +64,8 @@ try {
   console.log("Firestore initialized successfully");
 
   // Initialize Firebase Storage
-  storage = getStorage(app);
-  console.log("Firebase Storage initialized successfully");
+  // storage = getStorage(app);
+  // console.log("Firebase Storage initialized successfully");
 
   // Set auth persistence with error handling
   setPersistence(auth, browserLocalPersistence)
@@ -97,4 +97,4 @@ try {
   };
 }
 
-export { auth, db, storage };
+export { auth, db };
