@@ -1,0 +1,35 @@
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Content-Security-Policy: script-src 'self' 'wasm-unsafe-eval' 'inline-speculation-rules' https://firestore.googleapis.com https://www.google.com https://www.gstatic.com https://apis.google.com https://www.recaptcha.net;
+  
+# Special caching rules for social media crawlers
+/product/*
+  Cache-Control: public, max-age=300
+  X-Robots-Tag: index, follow
+  # Bot-specific headers
+  User-Agent=*facebookexternalhit*
+    X-Prerender-Ready: true
+  User-Agent=*discordbot*
+    X-Prerender-Ready: true
+  User-Agent=*twitterbot*
+    X-Prerender-Ready: true
+  User-Agent=*linkedinbot*
+    X-Prerender-Ready: true
+  User-Agent=*pinterest*
+    X-Prerender-Ready: true
+  User-Agent=*slackbot*
+    X-Prerender-Ready: true
+  User-Agent=*telegrambot*
+    X-Prerender-Ready: true
+  User-Agent=*whatsapp*
+    X-Prerender-Ready: true
+
+# Discord-specific headers
+/product/*
+  User-Agent=*discord*
+    Access-Control-Allow-Origin: *
+    X-Frame-Options: ALLOWALL
+    X-Discord-Allowed: true 

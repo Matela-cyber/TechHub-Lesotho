@@ -1,0 +1,144 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Loading animations */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
+/* Enhanced loading screen styles */
+.loading-screen {
+  background: linear-gradient(135deg, #8B4513 0%, #A0522D 50%, #D2691E 100%);
+}
+
+/* Pulse animation for loading indicators */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Receipt PDF Styling */
+.receipt-container {
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px;
+  background: white;
+  color: #333;
+}
+
+.receipt-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.store-info h1 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #2563eb;
+}
+
+.receipt-info h2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.customer-info {
+  margin-bottom: 30px;
+}
+
+.customer-info h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.items-section {
+  margin-bottom: 30px;
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.items-table th {
+  background: #f9fafb;
+  padding: 10px;
+  text-align: left;
+  font-weight: bold;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.items-table td {
+  padding: 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.summary-section {
+  margin-bottom: 30px;
+  padding: 15px;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.summary-row.total {
+  font-weight: bold;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.payment-info {
+  margin-bottom: 30px;
+}
+
+.payment-info h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.footer {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 2px solid #f0f0f0;
+  color: #666;
+  font-size: 14px;
+}
+
+  

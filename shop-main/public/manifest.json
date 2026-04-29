@@ -1,0 +1,82 @@
+{
+  "short_name": "TechHub",
+  "name": "TechHub Lesotho - Your Online Tech Shop",
+  "description": "Electronics, gadgets, and accessories for work and life.",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "theme_color": "#8B4513",
+  "background_color": "#ffffff",
+  "prefer_related_applications": false,
+  "categories": ["shopping", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "screenshots/home-app.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Homepage of KamiKoto - Mobile View"
+    },
+    {
+      "src": "screenshots/acc-app.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Product Catalog - Mobile View"
+    },
+    {
+      "src": "screenshots/home-web.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Homepage of KamiKoto - Desktop View"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "View Cart",
+      "url": "/cart",
+      "description": "View your shopping cart",
+      "icons": [{ "src": "/icons/cart.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Account",
+      "url": "/my-account",
+      "description": "View your account details",
+      "icons": [{ "src": "/icons/account.png", "sizes": "192x192" }]
+    }
+  ],
+  "related_applications": [],
+  "dir": "ltr",
+  "lang": "en-IN",
+  "launch_handler": {
+    "client_mode": ["auto", "navigate"]
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred"
+}
