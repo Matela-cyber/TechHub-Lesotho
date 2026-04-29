@@ -175,13 +175,8 @@ const AddProduct = () => {
         .replace(/\s+/g, "-")
         .replace(/[^\w-]/g, "");
 
-      // Upload images to Firebase Storage if files are selected
-      const imageKeys = ["image", "image2", "image3"];
+      // Image upload removed: only image URLs are used now
       const uploadedImages = { ...newProduct };
-      for (const key of imageKeys) {
-        if (imageFiles[key]) {
-        }
-      }
 
       const { slug, ...productToSave } = {
         ...uploadedImages,
