@@ -30,8 +30,9 @@ console.log("Firebase Configuration Status:", {
   appId: firebaseConfig.appId ? "Configured" : "Missing",
 });
 
-// Initialize Firebase app with error handling
-let app, auth, db;
+let app = null;
+let auth = null;
+let db = null;
 
 try {
   // Check if all required config values are present
@@ -64,10 +65,6 @@ try {
   });
   console.log("Firestore initialized successfully");
 
-  // Initialize Firebase Storage
-  // storage = getStorage(app);
-  // console.log("Firebase Storage initialized successfully");
-
   // Set auth persistence with error handling
   setPersistence(auth, browserLocalPersistence)
     .then(() => {
@@ -78,24 +75,9 @@ try {
     });
 } catch (error) {
   console.error("Error initializing Firebase:", error);
-  // Create mock objects to prevent undefined errors
-  auth = {
-    currentUser: null,
-    onAuthStateChanged: () => () => {},
-    signInWithEmailAndPassword: () =>
-      Promise.reject(new Error("Firebase not initialized")),
-    signOut: () => Promise.reject(new Error("Firebase not initialized")),
-  };
-
-  db = {
-    collection: () => ({
-      doc: () => ({
-        get: () => Promise.reject(new Error("Firebase not initialized")),
-        set: () => Promise.reject(new Error("Firebase not initialized")),
-        update: () => Promise.reject(new Error("Firebase not initialized")),
-      }),
-    }),
-  };
+  // If initialization fails, export null for both
+  auth = null;
+  db = null;
 }
 
 export { auth, db };
