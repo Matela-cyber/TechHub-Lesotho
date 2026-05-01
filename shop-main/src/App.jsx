@@ -26,22 +26,23 @@ import { useDispatch } from "react-redux";
 import { setUser, clearUser } from "./redux/userSlice";
 import { useContentLoader } from "./hooks/useContentLoader";
 import "react-toastify/dist/ReactToastify.css";
-import PasswordReset from './pages/PasswordReset'; 
-import OrderSummary from './pages/OrderSummary';
-import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
-import { HelmetProvider } from 'react-helmet-async';
+import PasswordReset from "./pages/PasswordReset";
+import OrderSummary from "./pages/OrderSummary";
+import ReturnPolicy from "./pages/ReturnPolicy";
+import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
+import { HelmetProvider } from "react-helmet-async";
 import { LazyMotion, domAnimation } from "framer-motion";
 
 /**
  * Main application component with routing and providers setup
  * Features comprehensive content loading that waits for all critical assets
  * before displaying the website to ensure optimal user experience
- * 
+ *
  * @returns {JSX.Element} The main application component
  */
 function App() {
   const dispatch = useDispatch();
-  
+
   // Use the comprehensive content loader hook
   const {
     isLoading,
@@ -49,27 +50,40 @@ function App() {
     loadingStates,
     errors,
     markAuthLoaded,
-    forceComplete
+    forceComplete,
   } = useContentLoader();
-  
+
   /**
    * Detects if the current visitor is a social media crawler/bot
    * Used to bypass loading screens for better SEO and link previews
-   * 
+   *
    * @returns {boolean} True if the current user agent appears to be a bot
    */
   const isBotOrCrawler = () => {
-    if (typeof window === 'undefined' || !window.navigator) return false;
-    
+    if (typeof window === "undefined" || !window.navigator) return false;
+
     const botPatterns = [
-      'googlebot', 'bingbot', 'yandex', 'baiduspider', 'twitterbot',
-      'facebookexternalhit', 'linkedinbot', 'discordbot', 'slackbot',
-      'telegrambot', 'whatsapp', 'line-podcast', 'skype', 'pinterest',
-      'bot', 'spider', 'crawl'
+      "googlebot",
+      "bingbot",
+      "yandex",
+      "baiduspider",
+      "twitterbot",
+      "facebookexternalhit",
+      "linkedinbot",
+      "discordbot",
+      "slackbot",
+      "telegrambot",
+      "whatsapp",
+      "line-podcast",
+      "skype",
+      "pinterest",
+      "bot",
+      "spider",
+      "crawl",
     ];
-    
+
     const userAgent = navigator.userAgent.toLowerCase();
-    return botPatterns.some(pattern => userAgent.indexOf(pattern) !== -1);
+    return botPatterns.some((pattern) => userAgent.indexOf(pattern) !== -1);
   };
 
   // Handle authentication state changes
@@ -79,22 +93,22 @@ function App() {
       markAuthLoaded();
       return;
     }
-    
+
     // Set up authentication state listener
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        const { uid, email } = user; 
-        dispatch(setUser({ uid, email })); 
+        const { uid, email } = user;
+        dispatch(setUser({ uid, email }));
       } else {
-        dispatch(clearUser()); 
+        dispatch(clearUser());
       }
-      
+
       // Mark authentication as loaded after a brief delay for smooth UX
       setTimeout(() => {
         markAuthLoaded();
       }, 500);
     });
-    
+
     return unsubscribe;
   }, [dispatch, markAuthLoaded]);
 
@@ -102,22 +116,22 @@ function App() {
   useEffect(() => {
     // Add keyboard shortcut for emergency loading completion (Ctrl+Shift+L)
     const handleKeyPress = (event) => {
-      if (event.ctrlKey && event.shiftKey && event.key === 'L') {
-        console.log('🔧 Emergency loading completion triggered');
+      if (event.ctrlKey && event.shiftKey && event.key === "L") {
+        console.log("🔧 Emergency loading completion triggered");
         forceComplete();
       }
     };
-    
-    if (process.env.NODE_ENV === 'development') {
-      window.addEventListener('keydown', handleKeyPress);
-      return () => window.removeEventListener('keydown', handleKeyPress);
+
+    if (process.env.NODE_ENV === "development") {
+      window.addEventListener("keydown", handleKeyPress);
+      return () => window.removeEventListener("keydown", handleKeyPress);
     }
   }, [forceComplete]);
 
   // Show comprehensive loading screen with progress
   if (isLoading && !isBotOrCrawler()) {
     return (
-      <LoadingScreen 
+      <LoadingScreen
         message="Preparing your shopping experience"
         progress={loadingProgress}
         showTips={true}
@@ -135,7 +149,7 @@ function App() {
           scriptProps={{
             async: true, // Async load to improve page load time
             defer: true,
-            appendTo: 'head',
+            appendTo: "head",
           }}
           language="en"
           useRecaptchaNet={true} // Use recaptcha.net instead of google.com (helps in certain countries)
@@ -173,34 +187,47 @@ function App() {
                   <Route path="/signin" element={<SignIn />} />
                   <Route path="/signup" element={<SignUp />} />
                   <Route path="/password-reset" element={<PasswordReset />} />
-                  
+
                   {/* My Account routes */}
-                  <Route path="/my-account" element={
-                    <ProtectedRoute>
-                      <MyAccount />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/my-account/:section" element={
-                    <ProtectedRoute>
-                      <MyAccount />
-                    </ProtectedRoute>
-                  } />
-                  
-                  <Route path="/wishlist" element={
-                    <ProtectedRoute>
-                      <Wishlist />
-                    </ProtectedRoute>
-                  } />
+                  <Route
+                    path="/my-account"
+                    element={
+                      <ProtectedRoute>
+                        <MyAccount />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/my-account/:section"
+                    element={
+                      <ProtectedRoute>
+                        <MyAccount />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/wishlist"
+                    element={
+                      <ProtectedRoute>
+                        <Wishlist />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="/checkout" element={<UnifiedCheckout />} />
-                  
+
                   {/* Post-checkout order summary page - displays order confirmation */}
                   {/* Accessible after successful payment with orderId and paymentId query parameters */}
                   <Route path="/summary" element={<OrderSummary />} />
-                  
+
                   <Route path="/about" element={<AboutUs />} />
                   <Route path="/contact" element={<ContactUs />} />
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                  <Route path="/terms-of-service" element={<TermsOfService />} />
+                  <Route
+                    path="/terms-of-service"
+                    element={<TermsOfService />}
+                  />
+                  <Route path="/return-policy" element={<ReturnPolicy />} />
                 </Routes>
               </main>
               <Footer />

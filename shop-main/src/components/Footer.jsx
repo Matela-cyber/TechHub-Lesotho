@@ -121,18 +121,21 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2">
               {[
-                "About",
-                "Privacy Policy",
-                "Terms of Service",
-                "Return Policy",
-                "Shipping Info",
+                { label: "About", path: "/about" },
+                { label: "Privacy Policy", path: "/privacy-policy" },
+                { label: "Terms of Service", path: "/terms-of-service" },
+                { label: "Return Policy", path: "/return-policy" },
               ].map((item) => (
-                <m.li key={item} variants={itemVariants} whileHover={{ x: 5 }}>
+                <m.li
+                  key={item.label}
+                  variants={itemVariants}
+                  whileHover={{ x: 5 }}
+                >
                   <Link
-                    to={`/${item.toLowerCase().replace(/\s+/g, "-")}`}
+                    to={item.path}
                     className="text-gray-400 hover:text-white transition-colors duration-200"
                   >
-                    {item}
+                    {item.label}
                   </Link>
                 </m.li>
               ))}

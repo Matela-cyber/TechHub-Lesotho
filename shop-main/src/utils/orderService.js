@@ -29,7 +29,6 @@ import {
   serverTimestamp,
   query,
   where,
-  orderBy,
   getDocs,
   writeBatch,
   runTransaction,
@@ -865,18 +864,28 @@ const getAllOrders = async (filters = {}, pagination = {}) => {
       ordersQuery = query(ordersQuery, where("userId", "==", filters.userId));
     }
 
-    // Apply ordering
-    const orderField = filters.orderBy || "createdAt";
-    const orderDirection = filters.orderDirection || "desc";
-    ordersQuery = query(ordersQuery, orderBy(orderField, orderDirection));
-
     // Execute query
+    // NOTE: orderBy removed from Firestore query to avoid composite index requirements.
+    // All sorting is done client-side below.
     const ordersSnapshot = await getDocs(ordersQuery);
 
-    const orders = ordersSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    const orderField = filters.orderBy || "createdAt";
+    const orderDirection = filters.orderDirection || "desc";
+
+    // Helper to convert Firestore Timestamp or ISO string to ms
+    const toMs = (d) => {
+      if (!d) return 0;
+      if (typeof d.toDate === "function") return d.toDate().getTime();
+      return new Date(d).getTime() || 0;
+    };
+
+    const orders = ordersSnapshot.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => {
+        const tA = toMs(a[orderField]);
+        const tB = toMs(b[orderField]);
+        return orderDirection === "asc" ? tA - tB : tB - tA;
+      });
 
     // Apply client-side pagination if needed
     let paginatedOrders = orders;

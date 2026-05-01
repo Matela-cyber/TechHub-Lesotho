@@ -21,7 +21,7 @@ import { toast } from "react-toastify";
 import { getDoc, doc } from "firebase/firestore";
 import { useSelector } from "react-redux";
 import logger from "../utils/logger";
-import defaultPfp from "../assets/defaultpfp.png";
+// import defaultPfp from "../assets/defaultpfp.png";
 
 /**
  * Utility function to combine CSS classes conditionally
@@ -86,9 +86,15 @@ export default function Navbar() {
     if (cachedProfile) {
       try {
         const profileData = JSON.parse(cachedProfile);
-        setProfilePic(profileData.profilePic || defaultPfp);
-        setUserName(profileData.name || "User");
-        return;
+        // Ignore cached pics that contain the old defaultpfp image
+        const pic = profileData.profilePic || "";
+        if (pic.includes("defaultpfp")) {
+          sessionStorage.removeItem(`profile_${user.uid}`);
+        } else {
+          setProfilePic(pic);
+          setUserName(profileData.name || "User");
+          return;
+        }
       } catch (error) {
         // If parse fails, proceed with fetch
         logger.error("Failed to parse cached profile", error, "Navbar");
@@ -100,22 +106,25 @@ export default function Navbar() {
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        // Filter out old defaultpfp image URL stored in Firestore for legacy users
+        const rawPic = userData.profilePic || "";
+        const pic = rawPic.includes("defaultpfp") ? "" : rawPic;
         // Cache the profile data
         sessionStorage.setItem(
           `profile_${user.uid}`,
           JSON.stringify({
-            profilePic: userData.profilePic || defaultPfp,
+            profilePic: pic,
             name: userData.name || "User",
           }),
         );
 
-        setProfilePic(userData.profilePic || defaultPfp);
+        setProfilePic(pic);
         setUserName(userData.name || "User");
       }
     } catch (error) {
       logger.error("Failed to fetch profile data", error, "Navbar");
       // Use default values on error
-      setProfilePic(defaultPfp);
+      setProfilePic("");
       setUserName("User");
     } finally {
       setProfileLoading(false);
@@ -236,11 +245,15 @@ export default function Navbar() {
                     <div>
                       <div>
                         <Menu.Button className="flex items-center space-x-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                          <img
-                            className="h-9 w-9 rounded-full object-cover ring-2 ring-white"
-                            src={profilePic}
-                            alt={userName}
-                          />
+                          {profilePic && !profilePic.includes("defaultpfp") ? (
+                            <img
+                              className="h-9 w-9 rounded-full object-cover ring-2 ring-white"
+                              src={profilePic}
+                              alt={userName}
+                            />
+                          ) : (
+                            <UserCircleIcon className="h-9 w-9 text-gray-400 ring-2 ring-white rounded-full bg-gray-100" />
+                          )}
                           <span className="text-sm font-medium text-gray-700">
                             {userName}
                           </span>
@@ -369,11 +382,15 @@ export default function Navbar() {
               <div className="relative">
                 {/* Show profile picture instead of icon for Account tab when user is logged in */}
                 {item.name === "Account" && user ? (
-                  <img
-                    src={profilePic}
-                    alt={userName}
-                    className="h-6 w-6 mb-0.5 rounded-full object-cover ring-1 ring-gray-200"
-                  />
+                  profilePic && !profilePic.includes("defaultpfp") ? (
+                    <img
+                      src={profilePic}
+                      alt={userName}
+                      className="h-6 w-6 mb-0.5 rounded-full object-cover ring-1 ring-gray-200"
+                    />
+                  ) : (
+                    <UserCircleIcon className="h-6 w-6 mb-0.5 text-gray-500" />
+                  )
                 ) : (
                   <item.icon className="h-6 w-6 mb-0.5" />
                 )}

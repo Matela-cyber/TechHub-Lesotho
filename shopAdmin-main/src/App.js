@@ -11,6 +11,7 @@ import Orders from "./pages/Orders";
 import Login from "./pages/Login";
 import AdminHome from "./pages/AdminHome";
 import { ToastContainer } from "react-toastify";
+import AdminAccount from "./pages/AdminAccount";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -44,8 +45,8 @@ function App() {
             <Route path="products/add" element={<AddProduct />} />
             <Route path="products/edit/:id" element={<EditProduct />} />
             <Route path="coupons" element={<CouponManager />} />
-            {/* <Route path="banners" element={<BannerManager />} /> Removed: BannerManager no longer exists */}
             <Route path="announcements" element={<AnnouncementManager />} />
+            <Route path="account" element={<AdminAccount />} />
           </Route>
           {/* Optionally, handle 404 Not Found */}
           <Route path="*" element={<div className="p-4">404 Not Found</div>} />

@@ -2,7 +2,15 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-import { collection, query, getDocs, orderBy, limit } from "firebase/firestore";
+import {
+  collection,
+  query,
+  getDocs,
+  orderBy,
+  limit,
+  where,
+  onSnapshot,
+} from "firebase/firestore";
 import { db } from "../firebase";
 import { formatCurrency, formatLakhs } from "../utils/formatUtils";
 import {
@@ -20,6 +28,7 @@ import {
   X,
   ChevronRight,
   Activity,
+  User,
 } from "react-feather";
 import { Card, LoadingSpinner, Badge } from "../components/ui";
 
@@ -442,17 +451,7 @@ const AdminDashboard = () => {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      {/* Welcome Banner */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white shadow-xl"
-      >
-        <h1 className="text-3xl font-bold mb-2">Welcome Back, Admin! 👋</h1>
-        <p className="text-blue-100">
-          Here's what's happening with your store today
-        </p>
-      </motion.div>
+      {/* Welcome Banner removed as requested */}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -750,6 +749,68 @@ const AdminHome = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [readIds, setReadIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("admin_read_notifs") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  // Real-time listener: orders with status "Placed" = need admin attention
+  useEffect(() => {
+    const q = query(
+      collection(db, "orders"),
+      orderBy("orderDate", "desc"),
+      limit(20),
+    );
+    const unsub = onSnapshot(q, (snapshot) => {
+      const notifs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setNotifications(notifs);
+    });
+    return () => unsub();
+  }, []);
+
+  const unreadCount = notifications.filter(
+    (n) => !readIds.includes(n.id),
+  ).length;
+
+  const markAllRead = () => {
+    const allIds = notifications.map((n) => n.id);
+    setReadIds(allIds);
+    localStorage.setItem("admin_read_notifs", JSON.stringify(allIds));
+  };
+
+  const markRead = (id) => {
+    const updated = [...new Set([...readIds, id])];
+    setReadIds(updated);
+    localStorage.setItem("admin_read_notifs", JSON.stringify(updated));
+  };
+
+  const getStatusColor = (status) => {
+    switch ((status || "").toLowerCase()) {
+      case "placed":
+        return "bg-yellow-100 text-yellow-700";
+      case "approved":
+        return "bg-blue-100 text-blue-700";
+      case "packed":
+        return "bg-indigo-100 text-indigo-700";
+      case "shipped":
+        return "bg-purple-100 text-purple-700";
+      case "delivered":
+        return "bg-green-100 text-green-700";
+      case "declined":
+      case "cancelled":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
 
   const handleLogout = () => {
     toast.success("Logged out successfully!");
@@ -762,8 +823,8 @@ const AdminHome = () => {
     { path: "/products", icon: Package, label: "Products" },
     { path: "/users", icon: Users, label: "Users" },
     { path: "/coupons", icon: Tag, label: "Coupons" },
-    { path: "/banners", icon: ImageIcon, label: "Banners" },
     { path: "/announcements", icon: Bell, label: "Announcements" },
+    { path: "/account", icon: User, label: "My Account" },
   ];
 
   const isManageRoute = location.pathname !== "/";
@@ -961,15 +1022,150 @@ const AdminHome = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-2 hover:bg-gray-100 rounded-lg relative"
-            >
-              <Bell className="w-6 h-6 text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </motion.button>
+          <div className="flex items-center gap-3 relative">
+            {/* Notification Bell */}
+            <div className="relative">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setNotifOpen((v) => !v)}
+                className="p-2 hover:bg-gray-100 rounded-lg relative focus:outline-none"
+                aria-label="Notifications"
+              >
+                <Bell className="w-6 h-6 text-gray-600" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-0.5 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </motion.button>
+
+              {/* Dropdown */}
+              <AnimatePresence>
+                {notifOpen && (
+                  <>
+                    {/* Backdrop */}
+                    <div
+                      className="fixed inset-0 z-30"
+                      onClick={() => setNotifOpen(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.97 }}
+                      transition={{ duration: 0.18 }}
+                      className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 z-40 overflow-hidden"
+                    >
+                      {/* Header */}
+                      <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
+                        <div>
+                          <h3 className="font-bold text-gray-800 text-base">
+                            Notifications
+                          </h3>
+                          <p className="text-xs text-gray-400">
+                            {unreadCount} unread
+                          </p>
+                        </div>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllRead}
+                            className="text-xs text-blue-600 hover:underline font-medium"
+                          >
+                            Mark all as read
+                          </button>
+                        )}
+                      </div>
+
+                      {/* List */}
+                      <div className="max-h-[420px] overflow-y-auto divide-y divide-gray-50">
+                        {notifications.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                            <Bell className="w-10 h-10 mb-3 opacity-30" />
+                            <p className="text-sm">No notifications yet</p>
+                          </div>
+                        ) : (
+                          notifications.map((notif) => {
+                            const isRead = readIds.includes(notif.id);
+                            const dateStr = notif.orderDate
+                              ? new Date(notif.orderDate).toLocaleDateString(
+                                  "en-LS",
+                                  {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                  },
+                                )
+                              : "";
+                            return (
+                              <div
+                                key={notif.id}
+                                onClick={() => {
+                                  markRead(notif.id);
+                                  setNotifOpen(false);
+                                  window.location.href = "/orders";
+                                }}
+                                className={`flex items-start gap-3 px-5 py-4 cursor-pointer hover:bg-blue-50 transition-colors ${
+                                  isRead ? "opacity-60" : "bg-white"
+                                }`}
+                              >
+                                <div className="flex-shrink-0 w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
+                                  <ShoppingBag className="w-4 h-4 text-blue-600" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <p className="text-sm font-semibold text-gray-800 truncate">
+                                      Order #
+                                      {notif.orderId ||
+                                        notif.id.substring(0, 8)}
+                                    </p>
+                                    <span
+                                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getStatusColor(notif.status)}`}
+                                    >
+                                      {notif.status || "Unknown"}
+                                    </span>
+                                    {!isRead && (
+                                      <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-500 mt-0.5">
+                                    {notif.userName ||
+                                      notif.userEmail ||
+                                      "Customer"}
+                                    {dateStr && <> &middot; {dateStr}</>}
+                                  </p>
+                                  {notif.totalAmount != null && (
+                                    <p className="text-xs font-medium text-gray-700 mt-0.5">
+                                      M
+                                      {Number(notif.totalAmount).toLocaleString(
+                                        "en-LS",
+                                        { minimumFractionDigits: 2 },
+                                      )}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 text-center">
+                        <button
+                          onClick={() => {
+                            setNotifOpen(false);
+                            window.location.href = "/orders";
+                          }}
+                          className="text-sm text-blue-600 font-medium hover:underline"
+                        >
+                          View all orders →
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
 

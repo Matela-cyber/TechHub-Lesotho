@@ -1,9 +1,5 @@
 import { useState } from "react";
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from "../firebase";
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
@@ -14,38 +10,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [showRegister, setShowRegister] = useState(false);
-  const [registerEmail, setRegisterEmail] = useState("");
-  const [registerPassword, setRegisterPassword] = useState("");
-  const [registerLoading, setRegisterLoading] = useState(false);
-  // Temporary admin registration handler
-  const handleRegister = async () => {
-    setRegisterLoading(true);
-    setErrorMessage("");
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        registerEmail,
-        registerPassword,
-      );
-      const user = userCredential.user;
-      // Set user role to Admin in Firestore (v9 syntax)
-      const { setDoc, doc, serverTimestamp } =
-        await import("firebase/firestore");
-      await setDoc(doc(db, "users", user.uid), {
-        userRole: "Admin",
-        email: registerEmail,
-        createdAt: serverTimestamp(),
-      });
-      toast.success("Admin account created. You can now log in.");
-      setShowRegister(false);
-      setRegisterEmail("");
-      setRegisterPassword("");
-    } catch (error) {
-      setErrorMessage(error.message || "Registration failed.");
-    }
-    setRegisterLoading(false);
-  };
+  // Registration state and logic removed
   // Removed CAPTCHA state
   const navigate = useNavigate();
 
@@ -92,74 +57,29 @@ const Login = () => {
         {errorMessage && (
           <div className="mb-4 text-red-500">{errorMessage}</div>
         )}
-        {showRegister ? (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleRegister();
-            }}
-            className="space-y-4"
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input
+            className="border p-2 w-full mb-4"
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <input
+            className="border p-2 w-full mb-6"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button
+            className="bg-blue-500 text-white p-2 w-full rounded hover:bg-blue-600 mb-2"
+            type="submit"
           >
-            <input
-              className="border p-2 w-full mb-4"
-              type="email"
-              placeholder="Admin Email"
-              value={registerEmail}
-              onChange={(e) => setRegisterEmail(e.target.value)}
-            />
-            <input
-              className="border p-2 w-full mb-6"
-              type="password"
-              placeholder="Password"
-              value={registerPassword}
-              onChange={(e) => setRegisterPassword(e.target.value)}
-            />
-            <button
-              className="bg-green-500 text-white p-2 w-full rounded hover:bg-green-600 mb-2"
-              type="submit"
-              disabled={registerLoading}
-            >
-              {registerLoading ? "Registering..." : "Register Admin"}
-            </button>
-            <button
-              className="text-blue-500 underline w-full"
-              type="button"
-              onClick={() => setShowRegister(false)}
-            >
-              Back to Login
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              className="border p-2 w-full mb-4"
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              className="border p-2 w-full mb-6"
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <button
-              className="bg-blue-500 text-white p-2 w-full rounded hover:bg-blue-600 mb-2"
-              type="submit"
-            >
-              Login
-            </button>
-            <button
-              className="text-green-500 underline w-full"
-              type="button"
-              onClick={() => setShowRegister(true)}
-            >
-              Register Admin
-            </button>
-          </form>
-        )}
+            Login
+          </button>
+          {/* Registration button removed */}
+        </form>
       </div>
     </div>
   );

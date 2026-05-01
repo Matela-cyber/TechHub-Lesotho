@@ -8,7 +8,6 @@ import {
   collection,
   getDocs,
   query,
-  orderBy,
   // eslint-disable-next-line no-unused-vars
   limit,
   where,
@@ -16,6 +15,11 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
+import {
+  reauthenticateWithCredential,
+  updatePassword,
+  EmailAuthProvider,
+} from "firebase/auth";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import countriesStatesData from "../../src/countriesStates.json";
@@ -35,6 +39,9 @@ import {
   CheckCircle,
   FileDown,
   Star,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import {
@@ -48,7 +55,6 @@ import logger from "../utils/logger";
 import useWishlist from "../utils/useWishlist";
 import { downloadOrderReceipt } from "../utils/pdfUtils";
 import UserReviews from "../components/UserReviews";
-import defaultPfp from "../assets/defaultpfp.png";
 
 /**
  * Order status constants with associated colors for UI display
@@ -99,6 +105,14 @@ function MyAccount() {
   });
   const [loading, setLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
+  // Password change state
+  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
+  const [showPw, setShowPw] = useState({
+    current: false,
+    next: false,
+    confirm: false,
+  });
+  const [pwLoading, setPwLoading] = useState(false);
   // Profile picture upload removed
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [newPaymentMethod, setNewPaymentMethod] = useState({
@@ -187,10 +201,11 @@ function MyAccount() {
       setOrdersLoading(true);
 
       // Get all orders for this user
+      // NOTE: No orderBy in Firestore query — avoids composite index requirement.
+      // Sorting is done client-side after fetching.
       const ordersQuery = query(
         collection(db, "orders"),
         where("userId", "==", user.uid),
-        orderBy("orderDate", "desc"),
       );
 
       const ordersSnapshot = await getDocs(ordersQuery);
@@ -230,6 +245,19 @@ function MyAccount() {
           });
         }
       });
+
+      // Sort client-side: most recent first.
+      // Handles Firestore Timestamps, ISO strings, and missing fields.
+      const toMs = (d) => {
+        if (!d) return 0;
+        if (typeof d.toDate === "function") return d.toDate().getTime();
+        return new Date(d).getTime() || 0;
+      };
+      ordersData.sort(
+        (a, b) =>
+          (toMs(b.createdAt) || toMs(b.orderDate)) -
+          (toMs(a.createdAt) || toMs(a.orderDate)),
+      );
 
       setOrders(ordersData);
       logger.firebase.read("orders", { count: ordersData.length });
@@ -634,7 +662,10 @@ function MyAccount() {
               >
                 {/* Profile content */}
                 <div className="flex flex-col md:flex-row md:items-center gap-6">
-                  {/* Profile image removed */}
+                  {/* Profile image: Use generic User icon */}
+                  <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300 shadow-sm mb-2">
+                    <User size={56} className="text-gray-400" />
+                  </div>
 
                   <div className="flex-grow">
                     <h2 className="text-2xl font-semibold text-gray-800">
@@ -831,6 +862,134 @@ function MyAccount() {
                     </button>
                   </div>
                 </form>
+
+                {/* Change Password */}
+                <div className="border-t border-gray-200 pt-8">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                    <Lock size={18} className="mr-2" />
+                    Change Password
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Leave blank if you signed up with Google. Only
+                    email/password accounts can change their password here.
+                  </p>
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!pwForm.current) {
+                        toast.error("Enter your current password");
+                        return;
+                      }
+                      if (pwForm.next.length < 8) {
+                        toast.error(
+                          "New password must be at least 8 characters",
+                        );
+                        return;
+                      }
+                      if (pwForm.next !== pwForm.confirm) {
+                        toast.error("New passwords do not match");
+                        return;
+                      }
+                      setPwLoading(true);
+                      try {
+                        const credential = EmailAuthProvider.credential(
+                          user.email,
+                          pwForm.current,
+                        );
+                        await reauthenticateWithCredential(
+                          auth.currentUser,
+                          credential,
+                        );
+                        await updatePassword(auth.currentUser, pwForm.next);
+                        toast.success("Password changed successfully!");
+                        setPwForm({ current: "", next: "", confirm: "" });
+                      } catch (err) {
+                        let msg = "Failed to change password.";
+                        if (
+                          err.code === "auth/wrong-password" ||
+                          err.code === "auth/invalid-credential"
+                        )
+                          msg = "Current password is incorrect.";
+                        else if (err.code === "auth/too-many-requests")
+                          msg = "Too many attempts. Try again later.";
+                        else if (err.code === "auth/requires-recent-login")
+                          msg =
+                            "Please sign out and sign in again before changing your password.";
+                        toast.error(msg);
+                      } finally {
+                        setPwLoading(false);
+                      }
+                    }}
+                    className="space-y-4"
+                  >
+                    {[
+                      {
+                        id: "current",
+                        label: "Current Password",
+                        key: "current",
+                      },
+                      { id: "next", label: "New Password", key: "next" },
+                      {
+                        id: "confirm",
+                        label: "Confirm New Password",
+                        key: "confirm",
+                      },
+                    ].map(({ id, label, key }) => (
+                      <div key={id}>
+                        <label
+                          htmlFor={id}
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          {label}
+                        </label>
+                        <div className="relative">
+                          <input
+                            id={id}
+                            type={showPw[key] ? "text" : "password"}
+                            value={pwForm[key]}
+                            onChange={(e) =>
+                              setPwForm((f) => ({
+                                ...f,
+                                [key]: e.target.value,
+                              }))
+                            }
+                            placeholder={label}
+                            className="w-full pr-10 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={pwLoading}
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowPw((s) => ({ ...s, [key]: !s[key] }))
+                            }
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                            tabIndex={-1}
+                          >
+                            {showPw[key] ? (
+                              <EyeOff size={18} />
+                            ) : (
+                              <Eye size={18} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      type="submit"
+                      disabled={pwLoading}
+                      className="w-full md:w-auto px-6 py-3 bg-gray-900 text-white font-medium rounded-lg shadow hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:opacity-70"
+                    >
+                      {pwLoading ? (
+                        <span className="flex items-center justify-center">
+                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></span>
+                          Updating...
+                        </span>
+                      ) : (
+                        "Update Password"
+                      )}
+                    </button>
+                  </form>
+                </div>
               </m.div>
             )}
 
