@@ -6,13 +6,9 @@ import {
   getDoc,
   updateDoc,
   collection,
-  getDocs,
   query,
-  // eslint-disable-next-line no-unused-vars
-  limit,
   where,
-  // eslint-disable-next-line no-unused-vars
-  deleteDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import {
@@ -81,6 +77,66 @@ const ORDER_STATUS = {
  * - /my-account/wishlist
  * - /my-account/reviews
  */
+const STATUS_STEPS = ["Placed", "Approved", "Packed", "Shipped", "Delivered"];
+
+function OrderStatusTimeline({ status }) {
+  const isTerminal = status === "Declined" || status === "Cancelled";
+  const currentIdx = STATUS_STEPS.indexOf(status);
+
+  if (isTerminal) {
+    return (
+      <div className="flex items-center gap-2 mt-3 py-2 px-3 bg-red-50 rounded-lg text-red-600 text-sm">
+        <AlertCircle size={14} className="flex-shrink-0" />
+        <span>
+          {status === "Declined"
+            ? "Order was declined — contact us for details."
+            : "Order cancelled."}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 px-1">
+      <div className="relative flex items-center justify-between">
+        <div className="absolute top-3 left-0 right-0 h-0.5 bg-gray-200" />
+        <div
+          className="absolute top-3 left-0 h-0.5 bg-blue-500 transition-all duration-700"
+          style={{
+            width:
+              currentIdx >= 0
+                ? `${(currentIdx / (STATUS_STEPS.length - 1)) * 100}%`
+                : "0%",
+          }}
+        />
+        {STATUS_STEPS.map((step, idx) => {
+          const done = currentIdx >= idx;
+          const active = currentIdx === idx;
+          return (
+            <div
+              key={step}
+              className="relative flex flex-col items-center z-10"
+            >
+              <div
+                className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all
+                  ${done ? "bg-blue-500 border-blue-500 text-white" : "bg-white border-gray-300 text-gray-400"}
+                  ${active ? "ring-2 ring-blue-200 scale-110" : ""}`}
+              >
+                {done ? "✓" : idx + 1}
+              </div>
+              <span
+                className={`text-xs mt-1 text-center leading-tight max-w-[48px] ${done ? "text-blue-600 font-medium" : "text-gray-400"}`}
+              >
+                {step}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function MyAccount() {
   // Get the current section from URL parameters
   const { section } = useParams();
@@ -98,7 +154,7 @@ function MyAccount() {
       line2: "",
       city: "",
       state: "",
-      country: "India",
+      country: "Lesotho",
       pin: "",
     },
     // profilePic removed
@@ -185,111 +241,65 @@ function MyAccount() {
     fetchProfile();
   }, [user]);
 
-  /**
-   * Fetch user orders from Firestore
-   * Memoized with useCallback to prevent repeated calls and console spam
-   */
-  const fetchOrders = useCallback(async () => {
+  // Real-time orders listener — auto-updates whenever order status changes in Firestore
+  useEffect(() => {
     if (!user) return;
+    if (currentSection !== "orders" && currentSection !== "track-shipment")
+      return;
 
-    // Check if we've already fetched orders to prevent repeated calls
-    if (orders.length > 0 && !ordersLoading) return;
+    setOrdersLoading(true);
+    const ordersQuery = query(
+      collection(db, "orders"),
+      where("userId", "==", user.uid),
+    );
 
-    logger.user.action("View Orders", { userId: user.uid });
-
-    try {
-      setOrdersLoading(true);
-
-      // Get all orders for this user
-      // NOTE: No orderBy in Firestore query — avoids composite index requirement.
-      // Sorting is done client-side after fetching.
-      const ordersQuery = query(
-        collection(db, "orders"),
-        where("userId", "==", user.uid),
-      );
-
-      const ordersSnapshot = await getDocs(ordersQuery);
-      const ordersData = [];
-
-      ordersSnapshot.forEach((doc) => {
-        const data = doc.data();
-        if (data.userId === user.uid) {
-          // Ensure totalAmount is calculated if missing
-          // This fixes potential issues with older orders in the database
+    const unsubscribe = onSnapshot(
+      ordersQuery,
+      (snapshot) => {
+        const toMs = (d) => {
+          if (!d) return 0;
+          if (typeof d.toDate === "function") return d.toDate().getTime();
+          return new Date(d).getTime() || 0;
+        };
+        const ordersData = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
           if (!data.totalAmount && !data.total) {
-            // Calculate total based on available fields
-            const subtotal = data.subtotal || 0;
-            const tax = data.tax || 0;
-            const shipping = data.shipping?.cost || 0;
-            const discount = data.discount || 0;
-            const importDuty = data.importDuty || 0;
-
-            // Set totalAmount using the same calculation used in checkout
-            data.totalAmount =
-              subtotal + tax + shipping + importDuty - discount;
-
-            // Log the calculated total for debugging
-            console.log(`Calculated missing total for order ${data.orderId}:`, {
-              subtotal,
-              tax,
-              shipping,
-              discount,
-              importDuty,
-              calculatedTotal: data.totalAmount,
-            });
+            const s = data.subtotal || 0;
+            const t = data.tax || 0;
+            const sh = data.shipping?.cost || 0;
+            const d2 = data.discount || 0;
+            const imp = data.importDuty || 0;
+            data.totalAmount = s + t + sh + imp - d2;
           }
+          return { id: docSnap.id, ...data };
+        });
+        ordersData.sort(
+          (a, b) =>
+            (toMs(b.createdAt) || toMs(b.orderDate)) -
+            (toMs(a.createdAt) || toMs(a.orderDate)),
+        );
+        setOrders(ordersData);
+        setOrdersLoading(false);
+      },
+      (error) => {
+        toast.error("Failed to load orders. Please refresh.");
+        setOrdersLoading(false);
+      },
+    );
 
-          ordersData.push({
-            id: doc.id,
-            ...data,
-          });
-        }
-      });
+    return () => unsubscribe();
+  }, [user, currentSection]);
 
-      // Sort client-side: most recent first.
-      // Handles Firestore Timestamps, ISO strings, and missing fields.
-      const toMs = (d) => {
-        if (!d) return 0;
-        if (typeof d.toDate === "function") return d.toDate().getTime();
-        return new Date(d).getTime() || 0;
-      };
-      ordersData.sort(
-        (a, b) =>
-          (toMs(b.createdAt) || toMs(b.orderDate)) -
-          (toMs(a.createdAt) || toMs(a.orderDate)),
-      );
-
-      setOrders(ordersData);
-      logger.firebase.read("orders", { count: ordersData.length });
-    } catch (error) {
-      logger.firebase.error("orders", "getDocs", error);
-      toast.error("Error loading orders: " + error.message);
-    } finally {
-      setOrdersLoading(false);
-    }
-  }, [user, orders.length, ordersLoading]);
-
-  /**
-   * Fetch user wishlist items from Firebase
-   * This is now handled by the useWishlist hook
-   * Memoized with useCallback to prevent repeated calls
-   */
   const fetchWishlist = useCallback(async () => {
     if (!user) return;
-
-    // Only log once per section activation
     logger.user.action("View Wishlist", { userId: user.uid });
-    // The actual fetching is handled by the useWishlist hook
   }, [user]);
 
-  // Load data based on the current section
   useEffect(() => {
-    if (currentSection === "orders" || currentSection === "track-shipment") {
-      fetchOrders();
-    } else if (currentSection === "wishlist") {
+    if (currentSection === "wishlist") {
       fetchWishlist();
     }
-  }, [currentSection, fetchOrders, fetchWishlist]);
+  }, [currentSection, fetchWishlist]);
 
   /**
    * Handle input field changes
@@ -823,24 +833,35 @@ function MyAccount() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          State
+                          State / District
                         </label>
-                        <select
-                          name="address.state"
-                          value={profile.address.state}
-                          onChange={handleChange}
-                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select State</option>
-                          {profile.address.country &&
-                            countriesStatesData.countries[
+                        {countriesStatesData.countries[profile.address.country]
+                          ?.length > 0 ? (
+                          <select
+                            name="address.state"
+                            value={profile.address.state}
+                            onChange={handleChange}
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select State / District</option>
+                            {countriesStatesData.countries[
                               profile.address.country
-                            ]?.map((state) => (
+                            ].map((state) => (
                               <option key={state} value={state}>
                                 {state}
                               </option>
                             ))}
-                        </select>
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            name="address.state"
+                            value={profile.address.state}
+                            onChange={handleChange}
+                            placeholder="State / District / Region"
+                            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1277,108 +1298,129 @@ function MyAccount() {
                   </div>
                 ) : (
                   <div className="space-y-6">
-                    {orders.map((order) => {
-                      // Log order total info for debugging - helps identify inconsistent data
-                      console.log(`Order ${order.orderId} total data:`, {
-                        totalAmount: order.totalAmount,
-                        total: order.total,
-                        usedValue: order.totalAmount || order.total || 0,
-                      });
-
-                      return (
-                        <div
-                          key={order.id}
-                          className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition"
-                        >
-                          {/* Order Header */}
-                          <div className="bg-gray-50 p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                              <p className="text-sm text-gray-500">
-                                Order placed on{" "}
-                                {formatOrderDate(order.orderDate)}
-                              </p>
-                              <p className="text-xs text-gray-400 mt-1">
-                                Order ID: {order.orderId}
-                              </p>
-                            </div>
-
-                            <div className="flex flex-wrap items-center gap-3">
-                              <span
-                                className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                  ORDER_STATUS[order.status?.toUpperCase()]
-                                    ?.color || "bg-gray-100 text-gray-800"
-                                }`}
-                              >
-                                {order.status}
-                              </span>
-
-                              {/* If order is shipped, show tracking option */}
-                              {(order.status === "Shipped" ||
-                                order.status === "Delivered") &&
-                                order.tracking?.code && (
-                                  <Link
-                                    to="/my-account/track-shipment"
-                                    className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
-                                  >
-                                    <Truck size={14} className="mr-1" />
-                                    Track Package
-                                  </Link>
-                                )}
-                            </div>
+                    {orders.map((order) => (
+                      <div
+                        key={order.id}
+                        className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition"
+                      >
+                        {/* Order Header */}
+                        <div className="bg-gray-50 p-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div>
+                            <p className="text-sm text-gray-500">
+                              Order placed on {formatOrderDate(order.orderDate)}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Order ID: {order.orderId}
+                            </p>
                           </div>
 
-                          {/* Order Items */}
-                          <div className="p-4">
-                            <div className="space-y-4">
-                              {order.items.slice(0, 3).map((item, idx) => (
-                                <div
-                                  key={idx}
-                                  className="flex items-start gap-4"
-                                >
-                                  <div className="flex-shrink-0">
-                                    <img
-                                      src={
-                                        item.image ||
-                                        "https://via.placeholder.com/80?text=Product"
-                                      }
-                                      alt={item.name}
-                                      className="w-16 h-16 object-contain border border-gray-200 rounded-md"
-                                    />
-                                  </div>
-                                  <div className="flex-grow">
-                                    <h4 className="text-gray-800 font-medium">
-                                      {item.name}
-                                    </h4>
-                                    <p className="text-gray-500 text-sm mt-1">
-                                      Quantity: {item.quantity}
-                                    </p>
-                                  </div>
-                                </div>
-                              ))}
+                          <div className="flex flex-wrap items-center gap-3">
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                ORDER_STATUS[order.status?.toUpperCase()]
+                                  ?.color || "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {order.status}
+                            </span>
 
-                              {order.items.length > 3 && (
-                                <p className="text-sm text-gray-500">
-                                  + {order.items.length - 3} more items
+                            {/* If order is shipped, show tracking option */}
+                            {(order.status === "Shipped" ||
+                              order.status === "Delivered") &&
+                              order.tracking?.code && (
+                                <Link
+                                  to="/my-account/track-shipment"
+                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center"
+                                >
+                                  <Truck size={14} className="mr-1" />
+                                  Track Package
+                                </Link>
+                              )}
+                          </div>
+                        </div>
+
+                        {/* Order Items */}
+                        <div className="p-4">
+                          <OrderStatusTimeline status={order.status} />
+                          <div className="space-y-4 mt-4">
+                            {order.items.slice(0, 3).map((item, idx) => (
+                              <div key={idx} className="flex items-start gap-4">
+                                <div className="flex-shrink-0">
+                                  <img
+                                    src={
+                                      item.image ||
+                                      "https://via.placeholder.com/80?text=Product"
+                                    }
+                                    alt={item.name}
+                                    className="w-16 h-16 object-contain border border-gray-200 rounded-md"
+                                  />
+                                </div>
+                                <div className="flex-grow">
+                                  <h4 className="text-gray-800 font-medium">
+                                    {item.name}
+                                  </h4>
+                                  <p className="text-gray-500 text-sm mt-1">
+                                    Qty: {item.quantity} ×{" "}
+                                    {formatPrice(item.price || 0)}
+                                  </p>
+                                </div>
+                                <p className="text-gray-800 font-semibold text-sm whitespace-nowrap">
+                                  {formatPrice(
+                                    (item.price || 0) * item.quantity,
+                                  )}
                                 </p>
+                              </div>
+                            ))}
+
+                            {order.items.length > 3 && (
+                              <p className="text-sm text-gray-500">
+                                + {order.items.length - 3} more items
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Order Footer */}
+                          <div className="mt-6 pt-4 border-t border-gray-100">
+                            {/* Price breakdown */}
+                            <div className="text-sm text-gray-500 space-y-1 mb-3">
+                              <div className="flex justify-between">
+                                <span>Subtotal</span>
+                                <span>{formatPrice(order.subtotal || 0)}</span>
+                              </div>
+                              {order.tax > 0 && (
+                                <div className="flex justify-between">
+                                  <span>VAT</span>
+                                  <span>{formatPrice(order.tax)}</span>
+                                </div>
+                              )}
+                              {order.shipping?.cost > 0 && (
+                                <div className="flex justify-between">
+                                  <span>Shipping</span>
+                                  <span>
+                                    {formatPrice(order.shipping.cost)}
+                                  </span>
+                                </div>
+                              )}
+                              {order.discount > 0 && (
+                                <div className="flex justify-between text-green-600">
+                                  <span>
+                                    Discount
+                                    {order.coupon?.code
+                                      ? ` (${order.coupon.code})`
+                                      : ""}
+                                  </span>
+                                  <span>-{formatPrice(order.discount)}</span>
+                                </div>
                               )}
                             </div>
-
-                            {/* Order Footer */}
-                            <div className="mt-6 pt-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-gray-100">
                               <div>
-                                <p className="text-gray-500 text-sm">Total</p>
                                 <p className="text-gray-900 font-bold text-lg">
+                                  Total:{" "}
                                   {formatPrice(
                                     order.totalAmount || order.total || 0,
                                   )}
                                 </p>
-                                {order.coupon && (
-                                  <p className="text-green-600 text-xs mt-1">
-                                    Coupon applied: {order.coupon.code}
-                                    {order.coupon.discountAmount &&
-                                      ` (-${formatPrice(order.coupon.discountAmount)})`}
-                                  </p>
-                                )}
                               </div>
 
                               <div className="flex items-center gap-2">
@@ -1389,57 +1431,22 @@ function MyAccount() {
                                   <FileDown size={14} />
                                   Receipt
                                 </button>
-
-                                {/* Order Status Messages */}
-                                <div className="text-sm">
-                                  {order.status === "Placed" && (
-                                    <div className="flex items-center text-yellow-600">
-                                      <AlertCircle size={16} className="mr-1" />
-                                      <span>Order pending approval</span>
-                                    </div>
-                                  )}
-
-                                  {order.status === "Approved" && (
-                                    <div className="flex items-center text-blue-600">
-                                      <Package size={16} className="mr-1" />
-                                      <span>Order approved</span>
-                                    </div>
-                                  )}
-
-                                  {order.status === "Packed" && (
-                                    <div className="flex items-center text-indigo-600">
-                                      <Package size={16} className="mr-1" />
-                                      <span>Order packed</span>
-                                    </div>
-                                  )}
-
-                                  {order.status === "Shipped" && (
-                                    <div className="flex items-center text-purple-600">
-                                      <Truck size={16} className="mr-1" />
-                                      <span>Order shipped</span>
-                                    </div>
-                                  )}
-
-                                  {order.status === "Delivered" && (
-                                    <div className="flex items-center text-green-600">
-                                      <CheckCircle size={16} className="mr-1" />
-                                      <span>Order delivered</span>
-                                    </div>
-                                  )}
-
-                                  {order.status === "Declined" && (
-                                    <div className="flex items-center text-red-600">
-                                      <AlertCircle size={16} className="mr-1" />
-                                      <span>Order declined</span>
-                                    </div>
-                                  )}
-                                </div>
+                                {(order.status === "Shipped" ||
+                                  order.status === "Delivered") && (
+                                  <Link
+                                    to="/my-account/track-shipment"
+                                    className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 transition rounded text-sm text-blue-700"
+                                  >
+                                    <Truck size={14} />
+                                    Track
+                                  </Link>
+                                )}
                               </div>
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
                   </div>
                 )}
               </m.div>
@@ -1451,139 +1458,124 @@ function MyAccount() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-800">
-                    Track Your Shipment
-                  </h2>
-                </div>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+                  Track Your Orders
+                </h2>
 
-                <div className="bg-blue-50 rounded-lg p-5 mb-8 border border-blue-100">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle
-                      className="text-blue-600 mt-0.5 flex-shrink-0"
-                      size={20}
-                    />
-                    <div>
-                      <h3 className="font-medium text-blue-800">
-                        Track with India Post
-                      </h3>
-                      <p className="text-blue-700 text-sm mt-1">
-                        We use India Post for all our shipments. You can track
-                        your package using the tracking ID provided in your
-                        shipped orders.
-                      </p>
-                    </div>
+                <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-100 flex items-start gap-3">
+                  <Truck
+                    className="text-blue-600 mt-0.5 flex-shrink-0"
+                    size={20}
+                  />
+                  <div>
+                    <p className="font-medium text-blue-800">
+                      Real-time status updates
+                    </p>
+                    <p className="text-blue-700 text-sm mt-0.5">
+                      Your order status updates automatically below. For
+                      delivery tracking contact us at{" "}
+                      <strong>info@techhub.co.ls</strong> or{" "}
+                      <strong>+266 1234 5678</strong>.
+                    </p>
                   </div>
                 </div>
 
-                {/* Orders with tracking */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-gray-800 mb-4">
-                    Your Shipped Orders
-                  </h3>
+                {ordersLoading ? (
+                  <div className="flex justify-center items-center py-10">
+                    <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-blue-500"></div>
+                  </div>
+                ) : orders.filter(
+                    (o) => o.status !== "Declined" && o.status !== "Cancelled",
+                  ).length === 0 ? (
+                  <div className="bg-gray-50 rounded-lg p-8 text-center">
+                    <Truck size={40} className="mx-auto text-gray-300 mb-3" />
+                    <h4 className="text-gray-700 font-medium mb-1">
+                      No active orders
+                    </h4>
+                    <p className="text-gray-500 text-sm">
+                      You have no orders in progress right now.
+                    </p>
+                    <Link
+                      to="/my-account/orders"
+                      className="mt-4 inline-block text-blue-600 hover:underline text-sm"
+                    >
+                      View all orders
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    {orders
+                      .filter(
+                        (o) =>
+                          o.status !== "Declined" && o.status !== "Cancelled",
+                      )
+                      .map((order) => (
+                        <div
+                          key={order.id}
+                          className="border border-gray-200 rounded-xl p-5 shadow-sm"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+                            <div>
+                              <p className="font-semibold text-gray-800">
+                                {order.items?.length} item
+                                {order.items?.length !== 1 ? "s" : ""}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {formatOrderDate(order.orderDate)}
+                              </p>
+                              <p className="text-xs text-gray-400 mt-0.5">
+                                #{order.orderId}
+                              </p>
+                            </div>
+                            <span
+                              className={`self-start sm:self-auto px-3 py-1 rounded-full text-xs font-medium ${
+                                ORDER_STATUS[order.status?.toUpperCase()]
+                                  ?.color || "bg-gray-100 text-gray-800"
+                              }`}
+                            >
+                              {order.status}
+                            </span>
+                          </div>
 
-                  {ordersLoading ? (
-                    <div className="flex justify-center items-center py-8">
-                      <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-blue-500"></div>
-                    </div>
-                  ) : (
-                    <>
-                      {orders.filter(
-                        (order) =>
-                          (order.status === "Shipped" ||
-                            order.status === "Delivered") &&
-                          order.tracking?.code,
-                      ).length === 0 ? (
-                        <div className="bg-gray-50 rounded-lg p-6 text-center">
-                          <Truck
-                            size={36}
-                            className="mx-auto text-gray-400 mb-3"
-                          />
-                          <h4 className="text-gray-700 font-medium mb-1">
-                            No trackable shipments
-                          </h4>
-                          <p className="text-gray-500 text-sm">
-                            You don't have any shipped orders with tracking
-                            information yet.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {orders
-                            .filter(
-                              (order) =>
-                                (order.status === "Shipped" ||
-                                  order.status === "Delivered") &&
-                                order.tracking?.code,
-                            )
-                            .map((order) => (
-                              <div
-                                key={order.id}
-                                className="border border-gray-200 rounded-lg p-5 hover:shadow-sm transition"
-                              >
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                  <div>
-                                    <span
-                                      className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                                        order.status === "Shipped"
-                                          ? "bg-purple-100 text-purple-800"
-                                          : "bg-green-100 text-green-800"
-                                      }`}
+                          <OrderStatusTimeline status={order.status} />
+
+                          {order.statusHistory?.length > 1 && (
+                            <div className="mt-4 border-t border-gray-100 pt-4">
+                              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                                Status History
+                              </p>
+                              <div className="space-y-2">
+                                {[...order.statusHistory]
+                                  .reverse()
+                                  .map((entry, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex items-start gap-2 text-sm"
                                     >
-                                      {order.status}
-                                    </span>
-                                    <p className="text-sm text-gray-500 mt-2">
-                                      Order placed on{" "}
-                                      {formatOrderDate(order.orderDate)}
-                                    </p>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="text-sm text-gray-500">
-                                      Order ID
-                                    </p>
-                                    <p className="text-gray-700 font-medium">
-                                      {order.orderId}
-                                    </p>
-                                  </div>
-                                </div>
-
-                                <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
-                                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                                    <div className="flex-grow">
-                                      <h4 className="text-gray-700 font-medium">
-                                        Tracking Number
-                                      </h4>
-                                      <p className="font-mono text-gray-800 mt-1">
-                                        {order.tracking.code}
-                                      </p>
-                                      <p className="text-sm text-gray-500 mt-1">
-                                        Carrier: {order.tracking.carrier}
-                                      </p>
+                                      <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0" />
+                                      <div>
+                                        <span className="font-medium text-gray-700">
+                                          {entry.status}
+                                        </span>
+                                        {entry.note && (
+                                          <span className="text-gray-500">
+                                            {" "}
+                                            — {entry.note}
+                                          </span>
+                                        )}
+                                        <p className="text-xs text-gray-400">
+                                          {formatOrderDate(entry.timestamp)}
+                                        </p>
+                                      </div>
                                     </div>
-                                    <a
-                                      href={`https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition flex items-center"
-                                    >
-                                      Track{" "}
-                                      <ExternalLink
-                                        size={14}
-                                        className="ml-1"
-                                      />
-                                    </a>
-                                  </div>
-                                </div>
-
-                                {/* Status History Section */}
-                                {/* ... */}
+                                  ))}
                               </div>
-                            ))}
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </>
-                  )}
-                </div>
+                      ))}
+                  </div>
+                )}
               </m.div>
             )}
 

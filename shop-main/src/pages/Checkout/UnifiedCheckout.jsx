@@ -26,7 +26,6 @@ import {
   ShoppingBag,
   Truck,
   CreditCard,
-  CheckCircle,
   ChevronRight,
   ChevronLeft,
   Tag,
@@ -42,13 +41,8 @@ import {
   useGoogleReCaptcha,
 } from "react-google-recaptcha-v3";
 
-// Import card logos
-import VisaLogo from "../../assets/visa.png";
-import MasterCardLogo from "../../assets/mastercard.png";
-import RuPayLogo from "../../assets/rupay.png";
-import AMEXLogo from "../../assets/amex.png";
-
 const COUNTRY_CODES = {
+  Lesotho: "+266",
   India: "+91",
   "United States": "+1",
   Canada: "+1",
@@ -86,7 +80,7 @@ function UnifiedCheckout() {
     line2: "",
     city: "",
     state: "",
-    country: "India",
+    country: "Lesotho",
     pin: "",
   });
 
@@ -94,7 +88,7 @@ function UnifiedCheckout() {
   const [customerName, setCustomerName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedCountryCode, setSelectedCountryCode] = useState(
-    COUNTRY_CODES["India"],
+    COUNTRY_CODES["Lesotho"],
   );
   const [shippingMethod, setShippingMethod] = useState("standard");
 
@@ -103,17 +97,9 @@ function UnifiedCheckout() {
   const [importDuty, setImportDuty] = useState(0);
 
   // Payment details
-  const [paymentMethod, setPaymentMethod] = useState("Card");
-  const [card, setCard] = useState({
-    number: "",
-    cvv: "",
-    expiry: "",
-    type: "RuPay",
-  });
-  const [upi, setUpi] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
   const [processingPayment, setProcessingPayment] = useState(false);
   const [orderComplete] = useState(false);
-  const [savePaymentInfo, setSavePaymentInfo] = useState(true);
   const [completedOrder] = useState(null);
 
   // Coupon validation
@@ -177,24 +163,20 @@ function UnifiedCheckout() {
               setPhoneNumber(phone);
             }
 
-            if (userData.address) setAddress(userData.address);
-
-            const savedMethods = userData.paymentMethods || [];
-            const cardMethod = savedMethods.find((method) => method.cardNumber);
-            const upiMethod = savedMethods.find((method) => method.upi);
-
-            if (cardMethod) {
-              setCard({
-                number: cardMethod.cardNumber,
-                cvv: cardMethod.cvv,
-                expiry: cardMethod.expiry,
-                type: cardMethod.type || "RuPay",
-              });
-              setPaymentMethod("Card");
-            } else if (upiMethod) {
-              setUpi(upiMethod.upi);
-              setPaymentMethod("UPI");
+            if (userData.address) {
+              const savedAddr = userData.address;
+              // If saved country not in our list, fall back to Lesotho
+              const validCountries = Object.keys(countriesStatesData.countries);
+              const country = validCountries.includes(savedAddr.country)
+                ? savedAddr.country
+                : "Lesotho";
+              setAddress({ ...savedAddr, country });
+              setSelectedCountryCode(
+                COUNTRY_CODES[country] || COUNTRY_CODES["Lesotho"],
+              );
             }
+
+            // Payment method preference not loaded — using simulated payment
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
@@ -218,7 +200,6 @@ function UnifiedCheckout() {
     (acc, item) => acc + item.product.price * item.quantity,
     0,
   );
-  const tax = subtotal * 0.18; // 18% GST
 
   // Calculate shipping cost
   useEffect(() => {
@@ -228,7 +209,13 @@ function UnifiedCheckout() {
 
       const qualifiesForFreeShipping = subtotal > 1000;
 
-      if (address.country === "India") {
+      if (address.country === "Lesotho") {
+        if (shippingMethod === "express") {
+          newShippingCost = 150;
+        } else if (!qualifiesForFreeShipping) {
+          newShippingCost = 100;
+        }
+      } else if (address.country === "India") {
         if (shippingMethod === "express") {
           newShippingCost = 150;
         } else if (!qualifiesForFreeShipping) {
@@ -249,9 +236,10 @@ function UnifiedCheckout() {
   }, [address.country, shippingMethod, subtotal]);
 
   const discountAmount = appliedCoupon ? appliedCoupon.discountAmount : 0;
-  const total = subtotal + tax + shippingCost - discountAmount;
+  const VAT_RATE = 0.14; // Lesotho standard VAT 14%
+  const tax = subtotal * VAT_RATE;
 
-  const isValidPhoneNumber = (phone) => /^[0-9]{7,12}$/.test(phone);
+  const total = subtotal + tax + shippingCost - discountAmount;
 
   const handlePhoneChange = (e) => {
     const value = e.target.value;
@@ -269,27 +257,6 @@ function UnifiedCheckout() {
     return `M${num.toLocaleString("en-LS", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };
 
-  const formatCardNumber = (value) =>
-    value
-      .replace(/\s/g, "")
-      .replace(/(.{4})/g, "$1 ")
-      .trim();
-
-  const detectCardType = (number) => {
-    const cleanNumber = number.replace(/\s+/g, "");
-    if (/^4/.test(cleanNumber)) return "Visa";
-    if (/^5[1-5]/.test(cleanNumber)) return "MasterCard";
-    if (/^6/.test(cleanNumber)) return "RuPay";
-    if (/^3[47]/.test(cleanNumber)) return "AMEX";
-    return "RuPay";
-  };
-
-  const handleCardNumberChange = (e) => {
-    const formattedValue = formatCardNumber(e.target.value);
-    const cardType = detectCardType(formattedValue);
-    setCard({ ...card, number: formattedValue, type: cardType });
-  };
-
   const saveShippingAddress = async () => {
     if (!user) return false;
 
@@ -305,54 +272,6 @@ function UnifiedCheckout() {
       toast.error("Failed to save shipping address");
       return false;
     }
-  };
-
-  const savePaymentMethod = async () => {
-    if (user) {
-      try {
-        const userRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userRef);
-
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          const paymentMethods = userData.paymentMethods || [];
-
-          if (paymentMethod === "Card") {
-            const existingCardIndex = paymentMethods.findIndex(
-              (m) => m.cardNumber,
-            );
-            const cardData = {
-              cardNumber: card.number,
-              cvv: card.cvv,
-              expiry: card.expiry,
-              type: card.type,
-            };
-
-            if (existingCardIndex >= 0) {
-              paymentMethods[existingCardIndex] = cardData;
-            } else {
-              paymentMethods.push(cardData);
-            }
-          } else if (paymentMethod === "UPI") {
-            const existingUpiIndex = paymentMethods.findIndex((m) => m.upi);
-            const upiData = { upi };
-
-            if (existingUpiIndex >= 0) {
-              paymentMethods[existingUpiIndex] = upiData;
-            } else {
-              paymentMethods.push(upiData);
-            }
-          }
-
-          await updateDoc(userRef, { paymentMethods });
-        }
-        return true;
-      } catch (error) {
-        console.error("Error saving payment method:", error);
-        return false;
-      }
-    }
-    return true;
   };
 
   const processPayment = async () => {
@@ -410,8 +329,6 @@ function UnifiedCheckout() {
           console.error("Error checking purchased items:", error);
         }
       }
-
-      if (savePaymentInfo) await savePaymentMethod();
 
       const updatedCartDetails = cartDetails.filter(
         (item) => !removedProductIds.includes(item.productId),
@@ -492,15 +409,7 @@ function UnifiedCheckout() {
         },
         payment: {
           method: paymentMethod,
-          details:
-            paymentMethod === "Card"
-              ? {
-                  cardType: card.type,
-                  lastFour: card.number.slice(-4),
-                }
-              : {
-                  upiId: upi.split("@")[0] + "@xxxx",
-                },
+          details: { note: "Simulated payment — awaiting confirmation" },
         },
         subtotal,
         tax,
@@ -517,7 +426,7 @@ function UnifiedCheckout() {
         ],
         tracking: {
           code: null,
-          carrier: address.country === "India" ? "IndiaPost" : "DHL",
+          carrier: address.country === "Lesotho" ? "Local Courier" : "DHL",
           url: null,
         },
         shippingAddress: {
@@ -583,34 +492,20 @@ function UnifiedCheckout() {
     }
   };
 
-  const areAllRequiredFieldsFilled = () => {
-    if (
-      !customerName.trim() ||
-      !phoneNumber.trim() ||
-      !isValidPhoneNumber(phoneNumber)
-    ) {
-      return false;
-    }
-
-    if (
-      !address.houseNo.trim() ||
-      !address.line1.trim() ||
-      !address.city.trim() ||
-      !address.state.trim() ||
-      !address.country.trim() ||
-      !address.pin.trim()
-    ) {
-      return false;
-    }
-
-    return true;
+  const getMissingFields = () => {
+    const missing = [];
+    if (!customerName.trim()) missing.push("Full Name");
+    if (!phoneNumber.trim()) missing.push("Phone Number");
+    if (!address.line1.trim() && !address.houseNo.trim())
+      missing.push("Address");
+    if (!address.city.trim()) missing.push("City");
+    return missing;
   };
 
+  const areAllRequiredFieldsFilled = () => getMissingFields().length === 0;
+
   const isShippingComplete = areAllRequiredFieldsFilled();
-  const isPaymentComplete =
-    paymentMethod === "Card"
-      ? Boolean(card.number && card.cvv && card.expiry)
-      : Boolean(upi);
+  const isPaymentComplete = true; // Simulated payments — method selection is enough
 
   const nextStep = () => {
     if (currentStep === 1) {
@@ -620,12 +515,9 @@ function UnifiedCheckout() {
 
     if (currentStep === 2) {
       if (!areAllRequiredFieldsFilled()) {
-        toast.error("Please fill all required fields");
-        return;
-      }
-
-      if (!isValidPhoneNumber(phoneNumber)) {
-        toast.error("Please enter a valid phone number");
+        toast.error(
+          "Please enter your name, phone number, and delivery address",
+        );
         return;
       }
 
@@ -634,39 +526,12 @@ function UnifiedCheckout() {
     }
 
     if (currentStep === 3) {
-      if (paymentMethod === "Card") {
-        if (!card.number || !card.cvv || !card.expiry) {
-          toast.error("Please fill all card details");
-          return;
-        }
-      } else if (paymentMethod === "UPI") {
-        if (!upi) {
-          toast.error("Please enter a valid UPI ID");
-          return;
-        }
-      }
-
       processOrder();
     }
   };
 
   const prevStep = () => {
     setCurrentStep(currentStep > 1 ? currentStep - 1 : 1);
-  };
-
-  const getCardLogo = () => {
-    switch (card.type) {
-      case "Visa":
-        return <img src={VisaLogo} alt="Visa" className="w-16" />;
-      case "MasterCard":
-        return <img src={MasterCardLogo} alt="MasterCard" className="w-16" />;
-      case "RuPay":
-        return <img src={RuPayLogo} alt="RuPay" className="w-16" />;
-      case "AMEX":
-        return <img src={AMEXLogo} alt="AMEX" className="w-16" />;
-      default:
-        return null;
-    }
   };
 
   const handleApplyCoupon = async (e) => {
@@ -691,20 +556,12 @@ function UnifiedCheckout() {
       return;
     }
 
-    if (!executeRecaptcha) {
-      setCouponError("reCAPTCHA not available");
-      return;
-    }
-
     setValidatingCoupon(true);
 
     try {
-      const recaptchaToken = await executeRecaptcha("apply_coupon");
-
-      if (!recaptchaToken) {
-        setCouponError("Could not verify human interaction");
-        return;
-      }
+      const recaptchaToken = executeRecaptcha
+        ? await executeRecaptcha("apply_coupon")
+        : null;
 
       const result = await CouponService.validateCoupon(
         couponCode,
@@ -1064,31 +921,46 @@ function UnifiedCheckout() {
                               htmlFor="addressState"
                               className="block text-sm font-medium text-gray-700 mb-2"
                             >
-                              State/Province{" "}
+                              State/District{" "}
                               <span className="text-red-500">*</span>
                             </label>
-                            <select
-                              id="addressState"
-                              value={address.state}
-                              onChange={(e) =>
-                                setAddress({
-                                  ...address,
-                                  state: e.target.value,
-                                })
-                              }
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                            >
-                              <option value="" disabled>
-                                Select State
-                              </option>
-                              {countriesStatesData.countries[
-                                address.country
-                              ]?.map((state) => (
-                                <option key={state} value={state}>
-                                  {state}
-                                </option>
-                              ))}
-                            </select>
+                            {countriesStatesData.countries[address.country]
+                              ?.length > 0 ? (
+                              <select
+                                id="addressState"
+                                value={address.state}
+                                onChange={(e) =>
+                                  setAddress({
+                                    ...address,
+                                    state: e.target.value,
+                                  })
+                                }
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                              >
+                                <option value="">Select State/District</option>
+                                {countriesStatesData.countries[
+                                  address.country
+                                ].map((state) => (
+                                  <option key={state} value={state}>
+                                    {state}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <input
+                                id="addressState"
+                                type="text"
+                                value={address.state}
+                                onChange={(e) =>
+                                  setAddress({
+                                    ...address,
+                                    state: e.target.value,
+                                  })
+                                }
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                                placeholder="State / District / Region"
+                              />
+                            )}
                           </div>
                         </div>
 
@@ -1186,7 +1058,8 @@ function UnifiedCheckout() {
                                 Delivery within 7 days
                               </span>
                               <span className="block text-sm font-semibold mt-1">
-                                {address.country === "India"
+                                {address.country === "Lesotho" ||
+                                address.country === "India"
                                   ? subtotal > 1000
                                     ? "Free"
                                     : "M100"
@@ -1220,7 +1093,10 @@ function UnifiedCheckout() {
                                 Delivery within 2 days
                               </span>
                               <span className="block text-sm font-semibold mt-1">
-                                {address.country === "India" ? "M150" : "M600"}
+                                {address.country === "Lesotho" ||
+                                address.country === "India"
+                                  ? "M150"
+                                  : "M600"}
                               </span>
                             </div>
                           </div>
@@ -1254,169 +1130,59 @@ function UnifiedCheckout() {
                       Payment Information
                     </h2>
 
-                    {orderComplete ? (
-                      <div className="text-center py-12">
-                        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-                          <CheckCircle size={32} className="text-green-600" />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
-                          Order Completed!
-                        </h3>
-                        <p className="text-gray-600">
-                          Your order has been successfully processed.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <div className="flex items-center space-x-4 mb-4">
-                          <button
-                            type="button"
-                            onClick={() => setPaymentMethod("Card")}
-                            className={`flex-1 py-3 px-4 border rounded-lg text-center transition-all font-medium ${
-                              paymentMethod === "Card"
-                                ? "border-gray-900 bg-gray-900 text-white"
-                                : "border-gray-300 text-gray-700 hover:border-gray-400"
-                            }`}
-                          >
-                            <div className="flex justify-center items-center">
-                              <CreditCard className="mr-2" size={18} />
-                              <span>Card</span>
-                            </div>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setPaymentMethod("UPI")}
-                            className={`flex-1 py-3 px-4 border rounded-lg text-center transition-all font-medium ${
-                              paymentMethod === "UPI"
-                                ? "border-gray-900 bg-gray-900 text-white"
-                                : "border-gray-300 text-gray-700 hover:border-gray-400"
-                            }`}
-                          >
-                            <div className="flex justify-center items-center">
-                              <svg
-                                className="mr-2"
-                                width="18"
-                                height="18"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                              >
-                                <path
-                                  d="M12 4V7M12 7V20M12 7L19 4V17M12 7L5 4V17"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <span>UPI</span>
-                            </div>
-                          </button>
-                        </div>
-
-                        {paymentMethod === "Card" ? (
-                          <div className="space-y-4">
-                            <div className="flex justify-center mb-4">
-                              {getCardLogo()}
-                            </div>
-
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Card Number*
-                              </label>
-                              <input
-                                type="text"
-                                value={card.number}
-                                onChange={handleCardNumberChange}
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                                placeholder="1234 5678 9012 3456"
-                                maxLength="19"
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  Expiry (MM/YY)*
-                                </label>
-                                <input
-                                  type="text"
-                                  value={card.expiry}
-                                  onChange={(e) =>
-                                    setCard({ ...card, expiry: e.target.value })
-                                  }
-                                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                                  placeholder="MM/YY"
-                                  maxLength="5"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                  CVV*
-                                </label>
-                                <input
-                                  type="text"
-                                  value={card.cvv}
-                                  onChange={(e) =>
-                                    setCard({ ...card, cvv: e.target.value })
-                                  }
-                                  className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                                  placeholder="123"
-                                  maxLength="4"
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="flex items-center">
-                                <input
-                                  type="checkbox"
-                                  checked={savePaymentInfo}
-                                  onChange={() =>
-                                    setSavePaymentInfo(!savePaymentInfo)
-                                  }
-                                  className="h-4 w-4 text-gray-900 focus:ring-gray-900 border-gray-300 rounded"
-                                />
-                                <span className="ml-2 text-sm text-gray-600">
-                                  Save card for future purchases
-                                </span>
-                              </label>
-                            </div>
+                    <div className="space-y-3">
+                      <p className="text-sm text-gray-500 mb-4">
+                        Select how you'd like to pay. Payment is confirmed when
+                        your order is fulfilled.
+                      </p>
+                      {[
+                        {
+                          id: "Cash on Delivery",
+                          label: "Cash on Delivery",
+                          desc: "Pay in cash when your order arrives",
+                        },
+                        {
+                          id: "Bank Transfer (EFT)",
+                          label: "Bank Transfer (EFT)",
+                          desc: "Transfer via your bank — details sent by email",
+                        },
+                        {
+                          id: "M-Pesa",
+                          label: "M-Pesa",
+                          desc: "Pay via M-Pesa mobile money",
+                        },
+                      ].map((method) => (
+                        <label
+                          key={method.id}
+                          className={`flex items-start p-4 border rounded-xl cursor-pointer transition-all ${
+                            paymentMethod === method.id
+                              ? "border-gray-900 bg-gray-50 shadow-sm"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            value={method.id}
+                            checked={paymentMethod === method.id}
+                            onChange={() => setPaymentMethod(method.id)}
+                            className="mt-1 h-4 w-4 text-gray-900 focus:ring-gray-900"
+                          />
+                          <div className="ml-3">
+                            <span className="block font-semibold text-gray-900">
+                              {method.label}
+                            </span>
+                            <span className="block text-sm text-gray-500 mt-0.5">
+                              {method.desc}
+                            </span>
                           </div>
-                        ) : (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              UPI ID*
-                            </label>
-                            <input
-                              type="text"
-                              value={upi}
-                              onChange={(e) => setUpi(e.target.value)}
-                              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                              placeholder="example@upi"
-                            />
-                            <p className="mt-2 text-sm text-gray-500">
-                              Enter your UPI ID (e.g., username@bank)
-                            </p>
-
-                            <div className="mt-4">
-                              <label className="flex items-center">
-                                <input
-                                  type="checkbox"
-                                  checked={savePaymentInfo}
-                                  onChange={() =>
-                                    setSavePaymentInfo(!savePaymentInfo)
-                                  }
-                                  className="h-4 w-4 text-gray-900 focus:ring-gray-900 border-gray-300 rounded"
-                                />
-                                <span className="ml-2 text-sm text-gray-600">
-                                  Save UPI ID for future purchases
-                                </span>
-                              </label>
-                            </div>
-                          </div>
-                        )}
+                        </label>
+                      ))}
+                      <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-lg text-sm text-blue-700">
+                        <strong>Note:</strong> This is a simulated checkout. No
+                        real payment is processed.
                       </div>
-                    )}
+                    </div>
                   </m.div>
                 )}
               </AnimatePresence>
@@ -1507,7 +1273,7 @@ function UnifiedCheckout() {
                     <span className="font-medium">{formatPrice(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Tax (18%)</span>
+                    <span className="text-gray-600">VAT (14%)</span>
                     <span className="font-medium">{formatPrice(tax)}</span>
                   </div>
                   <div className="flex justify-between">
@@ -1580,6 +1346,17 @@ function UnifiedCheckout() {
                       </>
                     )}
                   </button>
+                  {/* Show a warning if Continue is disabled due to missing fields */}
+                  {currentStep === 2 && !areAllRequiredFieldsFilled() && (
+                    <div className="mt-2 text-sm text-red-600 text-center">
+                      Missing: {getMissingFields().join(", ")}
+                    </div>
+                  )}
+                  {cartDetails.length === 0 && (
+                    <div className="mt-2 text-sm text-red-600 text-center">
+                      Your cart is empty. Add items to continue.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

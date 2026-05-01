@@ -164,8 +164,8 @@ const processNewOrder = async (orderData, userData) => {
       tracking: {
         code: null,
         carrier:
-          orderData.shipping?.address?.country === "India"
-            ? SHIPPING_CARRIERS.INDIA_POST.name
+          orderData.shipping?.address?.country === "Lesotho"
+            ? "Local Courier"
             : SHIPPING_CARRIERS.DHL.name,
         url: null,
         estimatedDelivery: null,

@@ -529,42 +529,62 @@ function OrderSummary() {
                 variants={itemVariants}
                 className="bg-blue-50 rounded-lg p-4"
               >
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-3 mb-4">
                   <Package className="w-5 h-5 text-blue-600" />
                   <div>
                     <h3 className="font-semibold text-gray-800">
                       Order Status
                     </h3>
-                    <p className="text-blue-700">
-                      {order?.status || "Processing"}
-                    </p>
+                    <p className="text-blue-700">{order?.status || "Placed"}</p>
                   </div>
                 </div>
-                <div className="mt-4">
-                  <div className="relative">
-                    <div className="h-2 bg-gray-200 rounded-full">
-                      <div
-                        className="h-2 bg-blue-600 rounded-full"
-                        style={{
-                          width:
-                            order?.status === "Placed"
-                              ? "25%"
-                              : order?.status === "Shipped"
-                                ? "50%"
-                                : order?.status === "Delivered"
-                                  ? "100%"
-                                  : "25%",
-                        }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between mt-2 text-xs text-gray-600">
-                      <span>Order Placed</span>
-                      <span>Processing</span>
-                      <span>Shipped</span>
-                      <span>Delivered</span>
-                    </div>
+                {/* 5-step status bar matching actual order lifecycle */}
+                {order?.status !== "Declined" &&
+                order?.status !== "Cancelled" ? (
+                  (() => {
+                    const steps = [
+                      "Placed",
+                      "Approved",
+                      "Packed",
+                      "Shipped",
+                      "Delivered",
+                    ];
+                    const currentIdx = steps.indexOf(order?.status);
+                    const pct =
+                      currentIdx >= 0
+                        ? (currentIdx / (steps.length - 1)) * 100
+                        : 0;
+                    return (
+                      <div className="relative">
+                        <div className="h-1.5 bg-gray-200 rounded-full">
+                          <div
+                            className="h-1.5 bg-blue-600 rounded-full transition-all duration-700"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between mt-2">
+                          {steps.map((step, idx) => (
+                            <span
+                              key={step}
+                              className={`text-xs ${currentIdx >= idx ? "text-blue-600 font-medium" : "text-gray-400"}`}
+                            >
+                              {step}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <div className="text-sm text-red-600 flex items-center gap-2">
+                    <span>⚠</span>
+                    <span>
+                      {order?.status === "Declined"
+                        ? "Your order was declined. Please contact us for assistance."
+                        : "This order has been cancelled."}
+                    </span>
                   </div>
-                </div>
+                )}
               </motion.div>
 
               {/* Order Items */}

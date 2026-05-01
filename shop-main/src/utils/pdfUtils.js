@@ -559,7 +559,7 @@ export const createReceiptTemplate = (order, containerId) => {
                  margin-bottom: 8px;
                  color: #86868b;
                ">
-                 <span>Tax (18% GST)</span>
+                 <span>VAT (14%)</span>
                  <span>${formatPrice(order.tax)}</span>
                </div>
                

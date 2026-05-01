@@ -71,8 +71,9 @@ function Cart() {
     (acc, item) => acc + item.product.price * item.quantity,
     0,
   );
-  const tax = subtotal * 0.18; // 18% GST
-  const shipping = subtotal > 500 ? 0 : 50;
+  const VAT_RATE = 0.14; // Lesotho standard VAT
+  const tax = subtotal * VAT_RATE;
+  const shipping = subtotal > 1000 ? 0 : 100; // matches checkout: free over M1000
   const total = subtotal + tax + shipping;
 
   const formatPrice = (price) => {
@@ -256,7 +257,7 @@ function Cart() {
                     </span>
                   </div>
                   <div className="flex justify-between text-gray-600">
-                    <span>Tax (GST 18%)</span>
+                    <span>VAT (14%)</span>
                     <span className="font-semibold">{formatPrice(tax)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
@@ -271,7 +272,7 @@ function Cart() {
                   </div>
                   {shipping > 0 && (
                     <div className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-                      Add {formatPrice(500 - subtotal)} more for free shipping!
+                      Add {formatPrice(1000 - subtotal)} more for free shipping!
                     </div>
                   )}
                   <div className="border-t border-gray-200 pt-4">
