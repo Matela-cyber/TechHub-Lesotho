@@ -6,17 +6,58 @@ import { collection, query, getDocs, orderBy, limit } from "firebase/firestore";
 import { db } from "../firebase";
 import { formatCurrency, formatLakhs } from "../utils/formatUtils";
 import {
-  Home, Package, Users, ShoppingBag, Tag, Image as ImageIcon,
-  Bell, LogOut, TrendingUp, DollarSign, ShoppingCart, Menu, X,
-  ChevronRight, Activity
+  Home,
+  Package,
+  Users,
+  ShoppingBag,
+  Tag,
+  Image as ImageIcon,
+  Bell,
+  LogOut,
+  TrendingUp,
+  ShoppingCart,
+  Menu,
+  X,
+  ChevronRight,
+  Activity,
 } from "react-feather";
 import { Card, LoadingSpinner, Badge } from "../components/ui";
 
 // Import recharts components
 const ChartComponents = () => {
-  const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, Area, AreaChart } = require('recharts');
+  const {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    PieChart,
+    Pie,
+    Cell,
+    ResponsiveContainer,
+    LineChart,
+    Line,
+    Area,
+    AreaChart,
+  } = require("recharts");
   return {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, Area, AreaChart
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    PieChart,
+    Pie,
+    Cell,
+    ResponsiveContainer,
+    LineChart,
+    Line,
+    Area,
+    AreaChart,
   };
 };
 
@@ -25,11 +66,31 @@ const ChartComponents = () => {
  */
 const StatCard = ({ title, value, icon: Icon, color, trend, loading }) => {
   const colorClasses = {
-    blue: { bg: 'bg-blue-100', icon: 'text-blue-600', gradient: 'from-blue-500 to-blue-600' },
-    green: { bg: 'bg-green-100', icon: 'text-green-600', gradient: 'from-green-500 to-green-600' },
-    purple: { bg: 'bg-purple-100', icon: 'text-purple-600', gradient: 'from-purple-500 to-purple-600' },
-    orange: { bg: 'bg-orange-100', icon: 'text-orange-600', gradient: 'from-orange-500 to-orange-600' },
-    red: { bg: 'bg-red-100', icon: 'text-red-600', gradient: 'from-red-500 to-red-600' }
+    blue: {
+      bg: "bg-blue-100",
+      icon: "text-blue-600",
+      gradient: "from-blue-500 to-blue-600",
+    },
+    green: {
+      bg: "bg-green-100",
+      icon: "text-green-600",
+      gradient: "from-green-500 to-green-600",
+    },
+    purple: {
+      bg: "bg-purple-100",
+      icon: "text-purple-600",
+      gradient: "from-purple-500 to-purple-600",
+    },
+    orange: {
+      bg: "bg-orange-100",
+      icon: "text-orange-600",
+      gradient: "from-orange-500 to-orange-600",
+    },
+    red: {
+      bg: "bg-red-100",
+      icon: "text-red-600",
+      gradient: "from-red-500 to-red-600",
+    },
   };
 
   const colors = colorClasses[color] || colorClasses.blue;
@@ -39,11 +100,13 @@ const StatCard = ({ title, value, icon: Icon, color, trend, loading }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      whileHover={{ y: -5, shadow: '0 20px 40px rgba(0,0,0,0.1)' }}
+      whileHover={{ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" }}
       className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:border-gray-200 transition-all duration-300 overflow-hidden relative"
     >
       {/* Background gradient decoration */}
-      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colors.gradient} opacity-5 rounded-full -mr-16 -mt-16`} />
+      <div
+        className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colors.gradient} opacity-5 rounded-full -mr-16 -mt-16`}
+      />
 
       <div className="flex items-start justify-between relative z-10">
         <div className="flex-1">
@@ -67,7 +130,9 @@ const StatCard = ({ title, value, icon: Icon, color, trend, loading }) => {
               className="flex items-center mt-2"
             >
               <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-              <span className="text-sm text-green-600 font-medium">{trend}</span>
+              <span className="text-sm text-green-600 font-medium">
+                {trend}
+              </span>
             </motion.div>
           )}
         </div>
@@ -93,14 +158,14 @@ const AdminDashboard = () => {
     totalRevenue: 0,
     monthlyRevenue: 0,
     averageOrderValue: 0,
-    recentOrders: []
+    recentOrders: [],
   });
   const [monthlyRevenue, setMonthlyRevenue] = useState([]);
   const [productPerformance, setProductPerformance] = useState([]);
   const [statusDistribution, setStatusDistribution] = useState([]);
   const [userStats, setUserStats] = useState({
     totalUsers: 0,
-    newUsersThisMonth: 0
+    newUsersThisMonth: 0,
   });
 
   const [chartsReady, setChartsReady] = useState(false);
@@ -112,14 +177,21 @@ const AdminDashboard = () => {
     setChartsReady(true);
   }, []);
 
-  const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+  const COLORS = [
+    "#3B82F6",
+    "#10B981",
+    "#F59E0B",
+    "#EF4444",
+    "#8B5CF6",
+    "#EC4899",
+  ];
   const STATUS_COLORS = {
-    "Placed": "#F59E0B",
-    "Approved": "#3B82F6",
-    "Shipped": "#8B5CF6",
-    "Delivered": "#10B981",
-    "Declined": "#EF4444",
-    "Cancelled": "#6B7280"
+    Placed: "#F59E0B",
+    Approved: "#3B82F6",
+    Shipped: "#8B5CF6",
+    Delivered: "#10B981",
+    Declined: "#EF4444",
+    Cancelled: "#6B7280",
   };
 
   useEffect(() => {
@@ -131,7 +203,7 @@ const AdminDashboard = () => {
           fetchMonthlyRevenue(),
           fetchProductPerformance(),
           fetchOrderStatusDistribution(),
-          fetchUserStatistics()
+          fetchUserStatistics(),
         ]);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -154,7 +226,7 @@ const AdminDashboard = () => {
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      const orders = ordersSnapshot.docs.map(doc => {
+      const orders = ordersSnapshot.docs.map((doc) => {
         const data = doc.data();
         const orderTotal = data.total || data.totalAmount || data.amount || 0;
         totalRevenue += orderTotal;
@@ -171,12 +243,12 @@ const AdminDashboard = () => {
       const recentOrdersQuery = query(
         collection(db, "orders"),
         orderBy("orderDate", "desc"),
-        limit(5)
+        limit(5),
       );
       const recentOrdersSnapshot = await getDocs(recentOrdersQuery);
-      const recentOrders = recentOrdersSnapshot.docs.map(doc => ({
+      const recentOrders = recentOrdersSnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
 
       setOrderStats({
@@ -184,14 +256,14 @@ const AdminDashboard = () => {
         totalRevenue: totalRevenue,
         monthlyRevenue: monthlyRevenue,
         averageOrderValue: orders.length > 0 ? totalRevenue / orders.length : 0,
-        recentOrders: recentOrders
+        recentOrders: recentOrders,
       });
 
       console.log("Order Stats:", {
         totalOrders: orders.length,
         totalRevenue,
         monthlyRevenue,
-        averageOrderValue: orders.length > 0 ? totalRevenue / orders.length : 0
+        averageOrderValue: orders.length > 0 ? totalRevenue / orders.length : 0,
       });
     } catch (error) {
       console.error("Error fetching order statistics:", error);
@@ -214,11 +286,16 @@ const AdminDashboard = () => {
         const month = new Date();
         month.setMonth(now.getMonth() - i);
         const monthKey = `${month.getFullYear()}-${month.getMonth() + 1}`;
-        const monthName = month.toLocaleString('default', { month: 'short' });
-        monthlyData[monthKey] = { month: monthName, year: month.getFullYear(), revenue: 0, orders: 0 };
+        const monthName = month.toLocaleString("default", { month: "short" });
+        monthlyData[monthKey] = {
+          month: monthName,
+          year: month.getFullYear(),
+          revenue: 0,
+          orders: 0,
+        };
       }
 
-      ordersSnapshot.docs.forEach(doc => {
+      ordersSnapshot.docs.forEach((doc) => {
         const data = doc.data();
         const orderDate = new Date(data.orderDate);
 
@@ -251,19 +328,19 @@ const AdminDashboard = () => {
 
       const productSales = {};
 
-      ordersSnapshot.docs.forEach(doc => {
+      ordersSnapshot.docs.forEach((doc) => {
         const data = doc.data();
         if (data.items && Array.isArray(data.items)) {
-          data.items.forEach(item => {
+          data.items.forEach((item) => {
             if (!productSales[item.name]) {
               productSales[item.name] = {
                 name: item.name,
                 quantity: 0,
-                revenue: 0
+                revenue: 0,
               };
             }
             productSales[item.name].quantity += item.quantity || 0;
-            productSales[item.name].revenue += (item.price * item.quantity) || 0;
+            productSales[item.name].revenue += item.price * item.quantity || 0;
           });
         }
       });
@@ -285,7 +362,7 @@ const AdminDashboard = () => {
 
       const statusCounts = {};
 
-      ordersSnapshot.docs.forEach(doc => {
+      ordersSnapshot.docs.forEach((doc) => {
         const data = doc.data();
         const status = data.status || "Unknown";
 
@@ -312,16 +389,19 @@ const AdminDashboard = () => {
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       let newUsersCount = 0;
 
-      usersSnapshot.docs.forEach(doc => {
+      usersSnapshot.docs.forEach((doc) => {
         const data = doc.data();
-        if (data.createdAt && new Date(data.createdAt.seconds * 1000) >= firstDayOfMonth) {
+        if (
+          data.createdAt &&
+          new Date(data.createdAt.seconds * 1000) >= firstDayOfMonth
+        ) {
           newUsersCount++;
         }
       });
 
       setUserStats({
         totalUsers: usersSnapshot.docs.length,
-        newUsersThisMonth: newUsersCount
+        newUsersThisMonth: newUsersCount,
       });
     } catch (error) {
       console.error("Error fetching user statistics:", error);
@@ -335,7 +415,10 @@ const AdminDashboard = () => {
           <p className="font-semibold text-gray-800 mb-2">{label}</p>
           {payload.map((entry, index) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
-              {entry.name}: {entry.name === "Revenue" || entry.name === "revenue" ? formatCurrency(entry.value) : entry.value}
+              {entry.name}:{" "}
+              {entry.name === "Revenue" || entry.name === "revenue"
+                ? formatCurrency(entry.value)
+                : entry.value}
             </p>
           ))}
         </div>
@@ -366,7 +449,9 @@ const AdminDashboard = () => {
         className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 text-white shadow-xl"
       >
         <h1 className="text-3xl font-bold mb-2">Welcome Back, Admin! 👋</h1>
-        <p className="text-blue-100">Here's what's happening with your store today</p>
+        <p className="text-blue-100">
+          Here's what's happening with your store today
+        </p>
       </motion.div>
 
       {/* Stats Cards */}
@@ -381,9 +466,13 @@ const AdminDashboard = () => {
         <StatCard
           title="Total Revenue"
           value={formatCurrency(orderStats.totalRevenue)}
-          icon={DollarSign}
+          icon={Tag}
           color="green"
-          trend={orderStats.monthlyRevenue > 0 ? `+${formatCurrency(orderStats.monthlyRevenue)} this month` : undefined}
+          trend={
+            orderStats.monthlyRevenue > 0
+              ? `+${formatCurrency(orderStats.monthlyRevenue)} this month`
+              : undefined
+          }
           loading={loading}
         />
         <StatCard
@@ -426,12 +515,29 @@ const AdminDashboard = () => {
                       margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                     >
                       <defs>
-                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                        <linearGradient
+                          id="colorRevenue"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#3B82F6"
+                            stopOpacity={0.8}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#3B82F6"
+                            stopOpacity={0}
+                          />
                         </linearGradient>
                       </defs>
-                      <Charts.CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <Charts.CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="#E5E7EB"
+                      />
                       <Charts.XAxis dataKey="month" stroke="#6B7280" />
                       <Charts.YAxis
                         tickFormatter={(value) => formatLakhs(value)}
@@ -450,7 +556,9 @@ const AdminDashboard = () => {
                   </Charts.ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center py-10 text-gray-500">No revenue data available</p>
+                <p className="text-center py-10 text-gray-500">
+                  No revenue data available
+                </p>
               )}
             </Card>
           </motion.div>
@@ -487,7 +595,10 @@ const AdminDashboard = () => {
                         {statusDistribution.map((entry, index) => (
                           <Charts.Cell
                             key={`cell-${index}`}
-                            fill={STATUS_COLORS[entry.status] || COLORS[index % COLORS.length]}
+                            fill={
+                              STATUS_COLORS[entry.status] ||
+                              COLORS[index % COLORS.length]
+                            }
                           />
                         ))}
                       </Charts.Pie>
@@ -496,7 +607,9 @@ const AdminDashboard = () => {
                   </Charts.ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center py-10 text-gray-500">No order data available</p>
+                <p className="text-center py-10 text-gray-500">
+                  No order data available
+                </p>
               )}
             </Card>
           </motion.div>
@@ -529,11 +642,17 @@ const AdminDashboard = () => {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-bold text-sm">{index + 1}</span>
+                        <span className="text-blue-600 font-bold text-sm">
+                          {index + 1}
+                        </span>
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-800">{product.name}</p>
-                        <p className="text-sm text-gray-500">{product.quantity} units sold</p>
+                        <p className="font-semibold text-gray-800">
+                          {product.name}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {product.quantity} units sold
+                        </p>
                       </div>
                     </div>
                     <Badge variant="success">
@@ -543,7 +662,9 @@ const AdminDashboard = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-center py-10 text-gray-500">No product data available</p>
+              <p className="text-center py-10 text-gray-500">
+                No product data available
+              </p>
             )}
           </Card>
         </motion.div>
@@ -559,7 +680,10 @@ const AdminDashboard = () => {
             subtitle="Latest transactions"
             icon={<ShoppingBag className="w-5 h-5 text-orange-600" />}
             actions={
-              <Link to="/orders" className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1">
+              <Link
+                to="/orders"
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
+              >
                 View All <ChevronRight className="w-4 h-4" />
               </Link>
             }
@@ -579,17 +703,25 @@ const AdminDashboard = () => {
                       <p className="font-semibold text-gray-800">
                         {order.orderId || order.id.substring(0, 8)}
                       </p>
-                      <p className="text-sm text-gray-500">{order.userName || order.userEmail}</p>
+                      <p className="text-sm text-gray-500">
+                        {order.userName || order.userEmail}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-800">{formatCurrency(order.total)}</p>
+                      <p className="font-semibold text-gray-800">
+                        {formatCurrency(order.total)}
+                      </p>
                       <Badge
                         variant={
-                          order.status === 'Delivered' ? 'success' :
-                          order.status === 'Shipped' ? 'purple' :
-                          order.status === 'Placed' ? 'warning' :
-                          order.status === 'Cancelled' ? 'danger' :
-                          'default'
+                          order.status === "Delivered"
+                            ? "success"
+                            : order.status === "Shipped"
+                              ? "purple"
+                              : order.status === "Placed"
+                                ? "warning"
+                                : order.status === "Cancelled"
+                                  ? "danger"
+                                  : "default"
                         }
                         size="sm"
                       >
@@ -600,7 +732,9 @@ const AdminDashboard = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-center py-10 text-gray-500">No recent orders</p>
+              <p className="text-center py-10 text-gray-500">
+                No recent orders
+              </p>
             )}
           </Card>
         </motion.div>
@@ -629,10 +763,10 @@ const AdminHome = () => {
     { path: "/users", icon: Users, label: "Users" },
     { path: "/coupons", icon: Tag, label: "Coupons" },
     { path: "/banners", icon: ImageIcon, label: "Banners" },
-    { path: "/announcements", icon: Bell, label: "Announcements" }
+    { path: "/announcements", icon: Bell, label: "Announcements" },
   ];
 
-  const isManageRoute = location.pathname !== '/';
+  const isManageRoute = location.pathname !== "/";
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -668,8 +802,10 @@ const AdminHome = () => {
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
               {menuItems.map((item, index) => {
                 const Icon = item.icon;
-                const isActive = location.pathname === item.path ||
-                  (item.path !== '/' && location.pathname.startsWith(item.path));
+                const isActive =
+                  location.pathname === item.path ||
+                  (item.path !== "/" &&
+                    location.pathname.startsWith(item.path));
 
                 return (
                   <motion.div
@@ -682,9 +818,10 @@ const AdminHome = () => {
                       to={item.path}
                       className={`
                         flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                        ${isActive
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/50 scale-105'
-                          : 'hover:bg-gray-700'
+                        ${
+                          isActive
+                            ? "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/50 scale-105"
+                            : "hover:bg-gray-700"
                         }
                       `}
                     >
@@ -756,8 +893,10 @@ const AdminHome = () => {
               <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                 {menuItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = location.pathname === item.path ||
-                    (item.path !== '/' && location.pathname.startsWith(item.path));
+                  const isActive =
+                    location.pathname === item.path ||
+                    (item.path !== "/" &&
+                      location.pathname.startsWith(item.path));
 
                   return (
                     <Link
@@ -766,9 +905,10 @@ const AdminHome = () => {
                       onClick={() => setMobileMenuOpen(false)}
                       className={`
                         flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                        ${isActive
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg'
-                          : 'hover:bg-gray-700'
+                        ${
+                          isActive
+                            ? "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg"
+                            : "hover:bg-gray-700"
                         }
                       `}
                     >
@@ -813,9 +953,12 @@ const AdminHome = () => {
             </button>
             <div>
               <h1 className="text-2xl font-bold text-gray-800">
-                {menuItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
+                {menuItems.find((item) => item.path === location.pathname)
+                  ?.label || "Dashboard"}
               </h1>
-              <p className="text-sm text-gray-500">Manage your store efficiently</p>
+              <p className="text-sm text-gray-500">
+                Manage your store efficiently
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">

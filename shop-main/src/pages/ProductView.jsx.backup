@@ -231,7 +231,7 @@ function ProductView() {
       {/* SEO and Social Media Meta Tags - Optimized for WhatsApp, Discord, and all social platforms */}
       <Helmet>
         {/* Basic Meta Tags */}
-        <title>{product.name} | KamiKoto - Premium Stationery</title>
+        <title>{product.name} | TechHub Lesotho</title>
         <meta name="description" content={metaDescription} />
 
         {/* OpenGraph Tags for Facebook/Instagram/WhatsApp/Discord */}
@@ -245,7 +245,7 @@ function ProductView() {
         <meta property="og:image:alt" content={product.name} />
         <meta property="og:url" content={window.location.href} />
         <meta property="og:type" content="product" />
-        <meta property="og:site_name" content="KamiKoto - Premium Stationery" />
+        <meta property="og:site_name" content="TechHub Lesotho" />
         <meta property="og:locale" content="en_IN" />
         <meta property="og:price:amount" content={product.price} />
         <meta property="og:price:currency" content="INR" />
@@ -254,7 +254,7 @@ function ProductView() {
 
         {/* Twitter Card Tags - Enhanced */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@KamiKoto" />
+        <meta name="twitter:site" content="@TechHub Lesotho" />
         <meta name="twitter:title" content={`${product.name} - ₹${formatPrice(product.price)}`} />
         <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content={product.image} />
@@ -281,7 +281,7 @@ function ProductView() {
             "sku": product.id,
             "brand": {
               "@type": "Brand",
-              "name": product.brand || "KamiKoto"
+              "name": product.brand || "TechHub Lesotho"
             },
             "offers": {
               "@type": "Offer",

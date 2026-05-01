@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { collection, addDoc, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  deleteDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "../../firebase";
 
 /**
@@ -20,7 +27,7 @@ const CouponManager = () => {
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
   const [productSearchTerm, setProductSearchTerm] = useState("");
   const [loadingProducts, setLoadingProducts] = useState(false);
-  
+
   // New coupon state with default values
   const [newCoupon, setNewCoupon] = useState({
     code: "",
@@ -30,8 +37,10 @@ const CouponManager = () => {
     usedCount: 0,
     minOrderAmount: 0,
     maxDiscountAmount: 0, // 0 for no limit
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
+    startDate: new Date().toISOString().split("T")[0],
+    endDate: new Date(new Date().setMonth(new Date().getMonth() + 1))
+      .toISOString()
+      .split("T")[0],
     isActive: true,
     description: "",
     applicableProducts: [], // Empty array means applicable to all products
@@ -54,10 +63,12 @@ const CouponManager = () => {
     try {
       const couponsCollection = collection(db, "coupons");
       const couponsSnapshot = await getDocs(couponsCollection);
-      const couponsList = couponsSnapshot.docs.map(doc => ({
+      const couponsList = couponsSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
-        isProductSpecific: doc.data().applicableProducts && doc.data().applicableProducts.length > 0,
+        isProductSpecific:
+          doc.data().applicableProducts &&
+          doc.data().applicableProducts.length > 0,
       }));
       setCoupons(couponsList);
     } catch (error) {
@@ -75,7 +86,7 @@ const CouponManager = () => {
     try {
       const productsCollection = collection(db, "products");
       const productsSnapshot = await getDocs(productsCollection);
-      const productsList = productsSnapshot.docs.map(doc => ({
+      const productsList = productsSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
@@ -102,16 +113,19 @@ const CouponManager = () => {
       return;
     }
 
-    if (newCoupon.discountType === "percentage" && newCoupon.discountValue > 100) {
+    if (
+      newCoupon.discountType === "percentage" &&
+      newCoupon.discountValue > 100
+    ) {
       alert("Percentage discount cannot exceed 100%");
       return;
     }
 
     // Check for existing coupon with the same code
     const existingCoupon = coupons.find(
-      coupon => coupon.code.toLowerCase() === newCoupon.code.toLowerCase()
+      (coupon) => coupon.code.toLowerCase() === newCoupon.code.toLowerCase(),
     );
-    
+
     if (existingCoupon) {
       alert("A coupon with this code already exists");
       return;
@@ -119,7 +133,7 @@ const CouponManager = () => {
 
     setIsSubmitting(true);
     setSubmissionStatus("submitting");
-    
+
     try {
       // Format dates to timestamps
       const couponToSave = {
@@ -132,11 +146,13 @@ const CouponManager = () => {
         maxDiscountAmount: Number(newCoupon.maxDiscountAmount),
         isProductSpecific: newCoupon.isProductSpecific,
         // Only include applicable products if product-specific
-        applicableProducts: newCoupon.isProductSpecific ? newCoupon.applicableProducts : [],
+        applicableProducts: newCoupon.isProductSpecific
+          ? newCoupon.applicableProducts
+          : [],
       };
 
       await addDoc(collection(db, "coupons"), couponToSave);
-      
+
       // Reset form
       setNewCoupon({
         code: "",
@@ -146,17 +162,19 @@ const CouponManager = () => {
         usedCount: 0,
         minOrderAmount: 0,
         maxDiscountAmount: 0,
-        startDate: new Date().toISOString().split('T')[0],
-        endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
+        startDate: new Date().toISOString().split("T")[0],
+        endDate: new Date(new Date().setMonth(new Date().getMonth() + 1))
+          .toISOString()
+          .split("T")[0],
         isActive: true,
         description: "",
         applicableProducts: [],
         isProductSpecific: false,
       });
       setSelectedProducts([]);
-      
+
       setSubmissionStatus("success");
-      
+
       // Refetch coupons
       fetchCoupons();
     } catch (error) {
@@ -177,16 +195,26 @@ const CouponManager = () => {
   const startEditCoupon = (coupon) => {
     // Set selected products for UI display
     setSelectedProducts(
-      products.filter(product => 
-        coupon.applicableProducts && coupon.applicableProducts.includes(product.id)
-      )
+      products.filter(
+        (product) =>
+          coupon.applicableProducts &&
+          coupon.applicableProducts.includes(product.id),
+      ),
     );
-    
+
     setEditingCoupon({
       ...coupon,
-      startDate: coupon.startDate ? new Date(coupon.startDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      endDate: coupon.endDate ? new Date(coupon.endDate).toISOString().split('T')[0] : new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split('T')[0],
-      isProductSpecific: coupon.isProductSpecific || (coupon.applicableProducts && coupon.applicableProducts.length > 0),
+      startDate: coupon.startDate
+        ? new Date(coupon.startDate).toISOString().split("T")[0]
+        : new Date().toISOString().split("T")[0],
+      endDate: coupon.endDate
+        ? new Date(coupon.endDate).toISOString().split("T")[0]
+        : new Date(new Date().setMonth(new Date().getMonth() + 1))
+            .toISOString()
+            .split("T")[0],
+      isProductSpecific:
+        coupon.isProductSpecific ||
+        (coupon.applicableProducts && coupon.applicableProducts.length > 0),
     });
   };
 
@@ -198,10 +226,10 @@ const CouponManager = () => {
 
     setIsSubmitting(true);
     setSubmissionStatus("submitting");
-    
+
     try {
       const couponRef = doc(db, "coupons", editingCoupon.id);
-      
+
       // Format dates and values properly
       const couponToUpdate = {
         ...editingCoupon,
@@ -213,17 +241,19 @@ const CouponManager = () => {
         updatedAt: new Date(),
         isProductSpecific: editingCoupon.isProductSpecific,
         // Only include applicable products if product-specific
-        applicableProducts: editingCoupon.isProductSpecific ? editingCoupon.applicableProducts : [],
+        applicableProducts: editingCoupon.isProductSpecific
+          ? editingCoupon.applicableProducts
+          : [],
       };
-      
+
       delete couponToUpdate.id; // Remove id field before updating
-      
+
       await updateDoc(couponRef, couponToUpdate);
-      
+
       setSubmissionStatus("success");
       setEditingCoupon(null);
       setSelectedProducts([]);
-      
+
       // Refetch coupons
       fetchCoupons();
     } catch (error) {
@@ -248,7 +278,7 @@ const CouponManager = () => {
 
     try {
       await deleteDoc(doc(db, "coupons", id));
-      setCoupons(coupons.filter(coupon => coupon.id !== id));
+      setCoupons(coupons.filter((coupon) => coupon.id !== id));
     } catch (error) {
       console.error("Error deleting coupon:", error);
       alert("Failed to delete the coupon. Please try again.");
@@ -272,24 +302,26 @@ const CouponManager = () => {
    * Generates a random coupon code
    */
   const generateCouponCode = () => {
-    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed similar looking characters
-    let result = '';
+    const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed similar looking characters
+    let result = "";
     const length = 8; // 8-character code
-    
+
     for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
+      result += characters.charAt(
+        Math.floor(Math.random() * characters.length),
+      );
     }
-    
+
     // Check if the generated code already exists
-    const codeExists = coupons.some(coupon => coupon.code === result);
+    const codeExists = coupons.some((coupon) => coupon.code === result);
     if (codeExists) {
       return generateCouponCode(); // Try again if code already exists
     }
-    
+
     if (editingCoupon) {
-      setEditingCoupon({...editingCoupon, code: result});
+      setEditingCoupon({ ...editingCoupon, code: result });
     } else {
-      setNewCoupon({...newCoupon, code: result});
+      setNewCoupon({ ...newCoupon, code: result });
     }
   };
 
@@ -301,35 +333,39 @@ const CouponManager = () => {
     const isEditing = !!editingCoupon;
     const currentCoupon = isEditing ? editingCoupon : newCoupon;
     const currentProducts = currentCoupon.applicableProducts || [];
-    
+
     // Check if the product is already selected
     const isSelected = currentProducts.includes(product.id);
-    
+
     // Create updated products array
-    const updatedProducts = isSelected 
-      ? currentProducts.filter(id => id !== product.id)
+    const updatedProducts = isSelected
+      ? currentProducts.filter((id) => id !== product.id)
       : [...currentProducts, product.id];
-    
+
     // Update the selected products for display
-    setSelectedProducts(
-      products.filter(p => updatedProducts.includes(p.id))
-    );
-    
+    setSelectedProducts(products.filter((p) => updatedProducts.includes(p.id)));
+
     // Update the coupon's applicable products
     if (isEditing) {
-      setEditingCoupon({...editingCoupon, applicableProducts: updatedProducts});
+      setEditingCoupon({
+        ...editingCoupon,
+        applicableProducts: updatedProducts,
+      });
     } else {
-      setNewCoupon({...newCoupon, applicableProducts: updatedProducts});
+      setNewCoupon({ ...newCoupon, applicableProducts: updatedProducts });
     }
   };
 
   /**
    * Filter products based on search term
    */
-  const filteredProducts = productSearchTerm 
-    ? products.filter(p => 
-        p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) || 
-        (p.brand || "").toLowerCase().includes(productSearchTerm.toLowerCase())
+  const filteredProducts = productSearchTerm
+    ? products.filter(
+        (p) =>
+          p.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+          (p.brand || "")
+            .toLowerCase()
+            .includes(productSearchTerm.toLowerCase()),
       )
     : products;
 
@@ -340,13 +376,18 @@ const CouponManager = () => {
    * @param {Function} submitHandler - The function to handle form submission
    * @param {boolean} isEdit - Whether this form is for editing an existing coupon
    */
-  const renderCouponForm = (couponData, setCouponData, submitHandler, isEdit) => {
+  const renderCouponForm = (
+    couponData,
+    setCouponData,
+    submitHandler,
+    isEdit,
+  ) => {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md mb-8">
         <h2 className="text-xl font-bold mb-4 border-b pb-2">
           {isEdit ? "Edit Coupon" : "Create New Coupon"}
         </h2>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Coupon Code */}
           <div className="mb-4">
@@ -357,7 +398,12 @@ const CouponManager = () => {
               <input
                 type="text"
                 value={couponData.code}
-                onChange={(e) => setCouponData({...couponData, code: e.target.value.toUpperCase()})}
+                onChange={(e) =>
+                  setCouponData({
+                    ...couponData,
+                    code: e.target.value.toUpperCase(),
+                  })
+                }
                 className="shadow border rounded py-2 px-3 text-gray-700 w-full mr-2"
                 placeholder="e.g., SUMMER25"
                 required
@@ -371,7 +417,7 @@ const CouponManager = () => {
               </button>
             </div>
           </div>
-          
+
           {/* Discount Type */}
           <div className="mb-4">
             <label className="block text-gray-700 font-bold mb-2">
@@ -379,14 +425,16 @@ const CouponManager = () => {
             </label>
             <select
               value={couponData.discountType}
-              onChange={(e) => setCouponData({...couponData, discountType: e.target.value})}
+              onChange={(e) =>
+                setCouponData({ ...couponData, discountType: e.target.value })
+              }
               className="shadow border rounded py-2 px-3 text-gray-700 w-full"
             >
               <option value="percentage">Percentage (%)</option>
-              <option value="fixed">Fixed Amount (₹)</option>
+              <option value="fixed">Fixed Amount (M)</option>
             </select>
           </div>
-          
+
           {/* Discount Value */}
           <div className="mb-4">
             <label className="block text-gray-700 font-bold mb-2">
@@ -395,50 +443,68 @@ const CouponManager = () => {
             <input
               type="number"
               value={couponData.discountValue}
-              onChange={(e) => setCouponData({...couponData, discountValue: e.target.value})}
+              onChange={(e) =>
+                setCouponData({ ...couponData, discountValue: e.target.value })
+              }
               className="shadow border rounded py-2 px-3 text-gray-700 w-full"
-              placeholder={couponData.discountType === "percentage" ? "e.g., 25 (for 25%)" : "e.g., 500 (for ₹500)"}
+              placeholder={
+                couponData.discountType === "percentage"
+                  ? "e.g., 25 (for 25%)"
+                  : "e.g., 500 (for M500)"
+              }
               min="0"
               required
             />
-            {couponData.discountType === "percentage" && couponData.discountValue > 100 && (
-              <p className="text-red-500 text-sm mt-1">Percentage discount cannot exceed 100%</p>
-            )}
+            {couponData.discountType === "percentage" &&
+              couponData.discountValue > 100 && (
+                <p className="text-red-500 text-sm mt-1">
+                  Percentage discount cannot exceed 100%
+                </p>
+              )}
           </div>
-          
+
           {/* Max Discount Amount (for percentage discounts) */}
           {couponData.discountType === "percentage" && (
             <div className="mb-4">
               <label className="block text-gray-700 font-bold mb-2">
-                Maximum Discount Amount (₹)
+                Maximum Discount Amount (M)
               </label>
               <input
                 type="number"
                 value={couponData.maxDiscountAmount}
-                onChange={(e) => setCouponData({...couponData, maxDiscountAmount: e.target.value})}
+                onChange={(e) =>
+                  setCouponData({
+                    ...couponData,
+                    maxDiscountAmount: e.target.value,
+                  })
+                }
                 className="shadow border rounded py-2 px-3 text-gray-700 w-full"
                 placeholder="0 for no limit"
                 min="0"
               />
-              <p className="text-gray-500 text-sm mt-1">0 for unlimited discount</p>
+              <p className="text-gray-500 text-sm mt-1">
+                0 for unlimited discount
+              </p>
             </div>
           )}
-          
+
           {/* Minimum Order Amount */}
           <div className="mb-4">
             <label className="block text-gray-700 font-bold mb-2">
-              Minimum Order Amount (₹)
+              Minimum Order Amount (M)
             </label>
             <input
               type="number"
               value={couponData.minOrderAmount}
-              onChange={(e) => setCouponData({...couponData, minOrderAmount: e.target.value})}
+              onChange={(e) =>
+                setCouponData({ ...couponData, minOrderAmount: e.target.value })
+              }
               className="shadow border rounded py-2 px-3 text-gray-700 w-full"
               placeholder="0 for no minimum"
               min="0"
             />
           </div>
-          
+
           {/* Max Uses */}
           <div className="mb-4">
             <label className="block text-gray-700 font-bold mb-2">
@@ -447,14 +513,16 @@ const CouponManager = () => {
             <input
               type="number"
               value={couponData.maxUses}
-              onChange={(e) => setCouponData({...couponData, maxUses: e.target.value})}
+              onChange={(e) =>
+                setCouponData({ ...couponData, maxUses: e.target.value })
+              }
               className="shadow border rounded py-2 px-3 text-gray-700 w-full"
               placeholder="0 for unlimited"
               min="0"
             />
             <p className="text-gray-500 text-sm mt-1">0 for unlimited uses</p>
           </div>
-          
+
           {/* Used Count (Edit only) */}
           {isEdit && (
             <div className="mb-4">
@@ -464,13 +532,18 @@ const CouponManager = () => {
               <input
                 type="number"
                 value={couponData.usedCount || 0}
-                onChange={(e) => setCouponData({...couponData, usedCount: Number(e.target.value)})}
+                onChange={(e) =>
+                  setCouponData({
+                    ...couponData,
+                    usedCount: Number(e.target.value),
+                  })
+                }
                 className="shadow border rounded py-2 px-3 text-gray-700 w-full"
                 min="0"
               />
             </div>
           )}
-          
+
           {/* Start Date */}
           <div className="mb-4">
             <label className="block text-gray-700 font-bold mb-2">
@@ -479,11 +552,13 @@ const CouponManager = () => {
             <input
               type="date"
               value={couponData.startDate}
-              onChange={(e) => setCouponData({...couponData, startDate: e.target.value})}
+              onChange={(e) =>
+                setCouponData({ ...couponData, startDate: e.target.value })
+              }
               className="shadow border rounded py-2 px-3 text-gray-700 w-full"
             />
           </div>
-          
+
           {/* End Date */}
           <div className="mb-4">
             <label className="block text-gray-700 font-bold mb-2">
@@ -492,35 +567,43 @@ const CouponManager = () => {
             <input
               type="date"
               value={couponData.endDate}
-              onChange={(e) => setCouponData({...couponData, endDate: e.target.value})}
+              onChange={(e) =>
+                setCouponData({ ...couponData, endDate: e.target.value })
+              }
               className="shadow border rounded py-2 px-3 text-gray-700 w-full"
               min={couponData.startDate}
             />
           </div>
         </div>
-        
+
         {/* Product-specific coupon toggle */}
         <div className="mb-6">
           <label className="flex items-center mb-4">
             <input
               type="checkbox"
               checked={couponData.isProductSpecific}
-              onChange={(e) => setCouponData({
-                ...couponData,
-                isProductSpecific: e.target.checked,
-                applicableProducts: e.target.checked ? couponData.applicableProducts : []
-              })}
+              onChange={(e) =>
+                setCouponData({
+                  ...couponData,
+                  isProductSpecific: e.target.checked,
+                  applicableProducts: e.target.checked
+                    ? couponData.applicableProducts
+                    : [],
+                })
+              }
               className="mr-2"
             />
-            <span className="text-gray-700 font-bold">Product-Specific Coupon</span>
+            <span className="text-gray-700 font-bold">
+              Product-Specific Coupon
+            </span>
           </label>
-          
+
           {couponData.isProductSpecific && (
             <div className="mt-2 border rounded-lg p-4 bg-gray-50">
               <label className="block text-gray-700 font-bold mb-2">
                 Select Products for This Coupon
               </label>
-              
+
               {/* Product search input */}
               <div className="relative mb-4">
                 <input
@@ -532,20 +615,30 @@ const CouponManager = () => {
                   onClick={() => setIsProductsDropdownOpen(true)}
                 />
                 <div className="absolute right-3 top-2.5">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                   </svg>
                 </div>
               </div>
-              
+
               {/* Selected products count */}
               <div className="mb-2 text-sm text-gray-600">
                 {selectedProducts.length} product(s) selected
               </div>
-              
+
               {/* Selected products list */}
               <div className="mb-4 flex flex-wrap gap-2">
-                {selectedProducts.map(product => (
+                {selectedProducts.map((product) => (
                   <div
                     key={product.id}
                     className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex items-center"
@@ -561,7 +654,7 @@ const CouponManager = () => {
                   </div>
                 ))}
               </div>
-              
+
               {/* Product selection dropdown */}
               {isProductsDropdownOpen && (
                 <div className="border border-gray-300 rounded-lg bg-white shadow-lg max-h-60 overflow-y-auto z-10 relative">
@@ -570,15 +663,19 @@ const CouponManager = () => {
                       <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
                     </div>
                   ) : filteredProducts.length === 0 ? (
-                    <div className="p-4 text-gray-500 text-center">No products found</div>
+                    <div className="p-4 text-gray-500 text-center">
+                      No products found
+                    </div>
                   ) : (
                     <ul>
-                      {filteredProducts.map(product => {
-                        const isSelected = couponData.applicableProducts && couponData.applicableProducts.includes(product.id);
+                      {filteredProducts.map((product) => {
+                        const isSelected =
+                          couponData.applicableProducts &&
+                          couponData.applicableProducts.includes(product.id);
                         return (
-                          <li 
-                            key={product.id} 
-                            className={`p-2 hover:bg-gray-100 cursor-pointer flex items-center ${isSelected ? 'bg-blue-50' : ''}`}
+                          <li
+                            key={product.id}
+                            className={`p-2 hover:bg-gray-100 cursor-pointer flex items-center ${isSelected ? "bg-blue-50" : ""}`}
                             onClick={() => toggleProductSelection(product)}
                           >
                             <input
@@ -588,10 +685,12 @@ const CouponManager = () => {
                               className="mr-2"
                             />
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium truncate">{product.name}</div>
+                              <div className="font-medium truncate">
+                                {product.name}
+                              </div>
                               <div className="text-xs text-gray-500">
-                                {product.brand ? `${product.brand} • ` : ''}
-                                ₹{product.price || '0'}
+                                {product.brand ? `${product.brand} • ` : ""}M
+                                {product.price || "0"}
                               </div>
                             </div>
                           </li>
@@ -610,24 +709,31 @@ const CouponManager = () => {
                   </div>
                 </div>
               )}
-              
+
               <button
                 type="button"
-                onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
+                onClick={() =>
+                  setIsProductsDropdownOpen(!isProductsDropdownOpen)
+                }
                 className="mt-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded"
               >
-                {isProductsDropdownOpen ? "Close Product List" : "Select Products"}
+                {isProductsDropdownOpen
+                  ? "Close Product List"
+                  : "Select Products"}
               </button>
-              
-              {couponData.isProductSpecific && couponData.applicableProducts && couponData.applicableProducts.length === 0 && (
-                <p className="text-amber-500 text-sm mt-2">
-                  No products selected. This coupon won't be applicable to any products.
-                </p>
-              )}
+
+              {couponData.isProductSpecific &&
+                couponData.applicableProducts &&
+                couponData.applicableProducts.length === 0 && (
+                  <p className="text-amber-500 text-sm mt-2">
+                    No products selected. This coupon won't be applicable to any
+                    products.
+                  </p>
+                )}
             </div>
           )}
         </div>
-        
+
         {/* Description */}
         <div className="mb-4">
           <label className="block text-gray-700 font-bold mb-2">
@@ -635,26 +741,30 @@ const CouponManager = () => {
           </label>
           <textarea
             value={couponData.description}
-            onChange={(e) => setCouponData({...couponData, description: e.target.value})}
+            onChange={(e) =>
+              setCouponData({ ...couponData, description: e.target.value })
+            }
             className="shadow border rounded py-2 px-3 text-gray-700 w-full"
             rows="2"
             placeholder="Optional description of the coupon"
           />
         </div>
-        
+
         {/* Active Status */}
         <div className="mb-4">
           <label className="flex items-center">
             <input
               type="checkbox"
               checked={couponData.isActive}
-              onChange={(e) => setCouponData({...couponData, isActive: e.target.checked})}
+              onChange={(e) =>
+                setCouponData({ ...couponData, isActive: e.target.checked })
+              }
               className="mr-2"
             />
             <span className="text-gray-700 font-bold">Active</span>
           </label>
         </div>
-        
+
         {/* Submit Button */}
         <div className="flex justify-end">
           {isEdit && (
@@ -671,19 +781,24 @@ const CouponManager = () => {
             onClick={submitHandler}
             disabled={isSubmitting}
             className={`p-2 px-4 rounded text-white ${
-              isSubmitting 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : submissionStatus === 'success' 
-                  ? 'bg-green-500'
-                  : submissionStatus === 'error'
-                    ? 'bg-red-500'
-                    : 'bg-blue-500 hover:bg-blue-600'
+              isSubmitting
+                ? "bg-gray-400 cursor-not-allowed"
+                : submissionStatus === "success"
+                  ? "bg-green-500"
+                  : submissionStatus === "error"
+                    ? "bg-red-500"
+                    : "bg-blue-500 hover:bg-blue-600"
             }`}
           >
-            {isSubmitting ? "Saving..." :
-             submissionStatus === 'success' ? "Saved!" :
-             submissionStatus === 'error' ? "Error!" : 
-             isEdit ? "Update Coupon" : "Create Coupon"}
+            {isSubmitting
+              ? "Saving..."
+              : submissionStatus === "success"
+                ? "Saved!"
+                : submissionStatus === "error"
+                  ? "Error!"
+                  : isEdit
+                    ? "Update Coupon"
+                    : "Create Coupon"}
           </button>
         </div>
       </div>
@@ -696,12 +811,17 @@ const CouponManager = () => {
 
       {/* Add/Edit Coupon Form */}
       {editingCoupon
-        ? renderCouponForm(editingCoupon, setEditingCoupon, handleUpdateCoupon, true)
+        ? renderCouponForm(
+            editingCoupon,
+            setEditingCoupon,
+            handleUpdateCoupon,
+            true,
+          )
         : renderCouponForm(newCoupon, setNewCoupon, handleAddCoupon, false)}
 
       {/* Coupons List */}
       <h2 className="text-xl font-bold mb-4">Existing Coupons</h2>
-      
+
       {loading ? (
         <div className="flex justify-center py-10">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
@@ -726,26 +846,30 @@ const CouponManager = () => {
             </thead>
             <tbody>
               {coupons.map((coupon) => (
-                <tr key={coupon.id} className={`hover:bg-gray-50 ${!coupon.isActive || isCouponExpired(coupon.endDate) ? 'bg-gray-100' : ''}`}>
-                  <td className="border px-4 py-2 font-mono font-bold">{coupon.code}</td>
-                  <td className="border px-4 py-2">
-                    {coupon.discountType === "percentage" 
-                      ? `${coupon.discountValue}%` 
-                      : `₹${coupon.discountValue}`}
-                    {coupon.discountType === "percentage" && coupon.maxDiscountAmount > 0 && 
-                      ` (up to ₹${coupon.maxDiscountAmount})`
-                    }
-                    {coupon.minOrderAmount > 0 && 
-                      <div className="text-xs text-gray-500">
-                        Min order: ₹{coupon.minOrderAmount}
-                      </div>
-                    }
+                <tr
+                  key={coupon.id}
+                  className={`hover:bg-gray-50 ${!coupon.isActive || isCouponExpired(coupon.endDate) ? "bg-gray-100" : ""}`}
+                >
+                  <td className="border px-4 py-2 font-mono font-bold">
+                    {coupon.code}
                   </td>
                   <td className="border px-4 py-2">
-                    {coupon.maxUses > 0 
+                    {coupon.discountType === "percentage"
+                      ? `${coupon.discountValue}%`
+                      : `M${coupon.discountValue}`}
+                    {coupon.discountType === "percentage" &&
+                      coupon.maxDiscountAmount > 0 &&
+                      ` (up to M${coupon.maxDiscountAmount})`}
+                    {coupon.minOrderAmount > 0 && (
+                      <div className="text-xs text-gray-500">
+                        Min order: M{coupon.minOrderAmount}
+                      </div>
+                    )}
+                  </td>
+                  <td className="border px-4 py-2">
+                    {coupon.maxUses > 0
                       ? `${coupon.usedCount || 0}/${coupon.maxUses}`
-                      : `${coupon.usedCount || 0}/∞`
-                    }
+                      : `${coupon.usedCount || 0}/∞`}
                   </td>
                   <td className="border px-4 py-2 whitespace-nowrap">
                     <div>
@@ -758,7 +882,9 @@ const CouponManager = () => {
                     )}
                   </td>
                   <td className="border px-4 py-2 text-center">
-                    {coupon.isProductSpecific || (coupon.applicableProducts && coupon.applicableProducts.length > 0) ? (
+                    {coupon.isProductSpecific ||
+                    (coupon.applicableProducts &&
+                      coupon.applicableProducts.length > 0) ? (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                         Yes ({(coupon.applicableProducts || []).length})
                       </span>
@@ -767,12 +893,16 @@ const CouponManager = () => {
                     )}
                   </td>
                   <td className="border px-4 py-2">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      coupon.isActive && !isCouponExpired(coupon.endDate)
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}>
-                      {coupon.isActive && !isCouponExpired(coupon.endDate) ? "Active" : "Inactive"}
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        coupon.isActive && !isCouponExpired(coupon.endDate)
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {coupon.isActive && !isCouponExpired(coupon.endDate)
+                        ? "Active"
+                        : "Inactive"}
                     </span>
                   </td>
                   <td className="border px-4 py-2">
@@ -801,4 +931,4 @@ const CouponManager = () => {
   );
 };
 
-export default CouponManager; 
+export default CouponManager;

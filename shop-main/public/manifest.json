@@ -38,7 +38,7 @@
       "sizes": "1080x1920",
       "type": "image/png",
       "platform": "narrow",
-      "label": "Homepage of KamiKoto - Mobile View"
+      "label": "Homepage of TechHub Lesotho - Mobile View"
     },
     {
       "src": "screenshots/acc-app.png",
@@ -52,7 +52,7 @@
       "sizes": "1920x1080",
       "type": "image/png",
       "platform": "wide",
-      "label": "Homepage of KamiKoto - Desktop View"
+      "label": "Homepage of TechHub Lesotho - Desktop View"
     }
   ],
   "shortcuts": [

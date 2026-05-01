@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { auth, db } from '../firebase/config';
+import React, { useState, useEffect } from "react";
+import { auth, db } from "../firebase/config";
 import {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
@@ -7,22 +7,31 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   GithubAuthProvider,
-} from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { useDispatch } from 'react-redux';
-import { setUser } from '../redux/userSlice';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+} from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { setUser } from "../redux/userSlice";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { m } from "framer-motion";
-import { Mail, ArrowRight, Loader2, CheckCircle2, UserPlus } from "lucide-react";
+import {
+  Mail,
+  ArrowRight,
+  Loader2,
+  CheckCircle2,
+  UserPlus,
+} from "lucide-react";
 import defaultPfp from "../assets/defaultpfp.png";
 
 function SignUp() {
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState({ google: false, github: false });
+  const [socialLoading, setSocialLoading] = useState({
+    google: false,
+    github: false,
+  });
   const [recaptchaChecking, setRecaptchaChecking] = useState(false);
   const [captchaUnavailable, setCaptchaUnavailable] = useState(false);
 
@@ -37,17 +46,23 @@ function SignUp() {
   useEffect(() => {
     const handleEmailLinkSignUp = async () => {
       if (isSignInWithEmailLink(auth, window.location.href)) {
-        let emailForSignIn = window.localStorage.getItem('emailForSignIn');
+        let emailForSignIn = window.localStorage.getItem("emailForSignIn");
 
         if (!emailForSignIn) {
-          emailForSignIn = window.prompt('Please provide your email for confirmation');
+          emailForSignIn = window.prompt(
+            "Please provide your email for confirmation",
+          );
         }
 
         if (emailForSignIn) {
           try {
             setLoading(true);
-            const result = await signInWithEmailLink(auth, emailForSignIn, window.location.href);
-            window.localStorage.removeItem('emailForSignIn');
+            const result = await signInWithEmailLink(
+              auth,
+              emailForSignIn,
+              window.location.href,
+            );
+            window.localStorage.removeItem("emailForSignIn");
 
             // Create user document with default profile picture
             const userRef = doc(db, "users", result.user.uid);
@@ -58,19 +73,25 @@ function SignUp() {
               await setDoc(userRef, {
                 uid: result.user.uid,
                 email: result.user.email,
-                name: result.user.email?.split('@')[0] || "",
+                name: result.user.email?.split("@")[0] || "",
                 profilePic: defaultPfp,
                 cart: [],
                 createdAt: new Date().toISOString(),
               });
             }
 
-            dispatch(setUser({ uid: result.user.uid, email: result.user.email }));
-            toast.success("Welcome to KamiKoto! Account created successfully.");
+            dispatch(
+              setUser({ uid: result.user.uid, email: result.user.email }),
+            );
+            toast.success(
+              "Welcome to TechHub Lesotho! Account created successfully.",
+            );
             navigate(from, { replace: true });
           } catch (error) {
             console.error("Error signing up with email link:", error);
-            toast.error(error.message || "Failed to sign up. Please try again.");
+            toast.error(
+              error.message || "Failed to sign up. Please try again.",
+            );
             setLoading(false);
           }
         }
@@ -94,7 +115,7 @@ function SignUp() {
 
     setRecaptchaChecking(true);
     try {
-      const token = await executeRecaptcha('signup');
+      const token = await executeRecaptcha("signup");
       console.log("reCAPTCHA token:", token);
       return !!token;
     } catch (error) {
@@ -115,7 +136,7 @@ function SignUp() {
       return;
     }
 
-    if (!await verifyRecaptchaToken()) {
+    if (!(await verifyRecaptchaToken())) {
       return;
     }
 
@@ -123,12 +144,12 @@ function SignUp() {
 
     try {
       const actionCodeSettings = {
-        url: window.location.origin + '/signup',
+        url: window.location.origin + "/signup",
         handleCodeInApp: true,
       };
 
       await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-      window.localStorage.setItem('emailForSignIn', email);
+      window.localStorage.setItem("emailForSignIn", email);
       setEmailSent(true);
       toast.success("Check your email to complete sign up!");
     } catch (error) {
@@ -143,16 +164,19 @@ function SignUp() {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!await verifyRecaptchaToken()) {
+    if (!(await verifyRecaptchaToken())) {
       return;
     }
 
     setSocialLoading({
       ...socialLoading,
-      [providerType]: true
+      [providerType]: true,
     });
 
-    const provider = providerType === 'google' ? new GoogleAuthProvider() : new GithubAuthProvider();
+    const provider =
+      providerType === "google"
+        ? new GoogleAuthProvider()
+        : new GithubAuthProvider();
 
     try {
       const result = await signInWithPopup(auth, provider);
@@ -166,20 +190,25 @@ function SignUp() {
         await setDoc(userRef, {
           uid: user.uid,
           email: user.email,
-          name: user.displayName || '',
+          name: user.displayName || "",
           profilePic: user.photoURL || defaultPfp,
           cart: [],
           createdAt: new Date().toISOString(),
         });
-        toast.success("Welcome to KamiKoto!");
+        toast.success("Welcome to TechHub Lesotho!");
       } else {
         // Existing user
-        await setDoc(userRef, {
-          uid: user.uid,
-          email: user.email,
-          name: user.displayName || userDoc.data().name,
-          profilePic: user.photoURL || userDoc.data().profilePic || defaultPfp,
-        }, { merge: true });
+        await setDoc(
+          userRef,
+          {
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName || userDoc.data().name,
+            profilePic:
+              user.photoURL || userDoc.data().profilePic || defaultPfp,
+          },
+          { merge: true },
+        );
         toast.success("Welcome back!");
       }
 
@@ -191,7 +220,7 @@ function SignUp() {
     } finally {
       setSocialLoading({
         ...socialLoading,
-        [providerType]: false
+        [providerType]: false,
       });
     }
   };
@@ -202,7 +231,9 @@ function SignUp() {
     if (!executeRecaptcha) {
       console.log("reCAPTCHA not yet available");
       captchaTimeout = setTimeout(() => {
-        console.warn("reCAPTCHA failed to load after timeout, bypassing verification");
+        console.warn(
+          "reCAPTCHA failed to load after timeout, bypassing verification",
+        );
         setCaptchaUnavailable(true);
       }, 5000);
     }
@@ -225,8 +256,12 @@ function SignUp() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-900 rounded-2xl mb-4">
             <UserPlus className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Account</h1>
-          <p className="text-gray-600">Join KamiKoto and discover premium stationery</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Create Account
+          </h1>
+          <p className="text-gray-600">
+            Join TechHub Lesotho — computers, ICT products &amp; web hosting
+          </p>
         </div>
 
         {/* Main Card */}
@@ -241,7 +276,10 @@ function SignUp() {
               {/* Email Sign Up Form */}
               <form onSubmit={handleEmailSignUp} className="space-y-6">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     Email Address
                   </label>
                   <div className="relative">
@@ -289,7 +327,9 @@ function SignUp() {
                   <div className="w-full border-t border-gray-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-white text-gray-500">Or sign up with</span>
+                  <span className="px-4 bg-white text-gray-500">
+                    Or sign up with
+                  </span>
                 </div>
               </div>
 
@@ -297,7 +337,7 @@ function SignUp() {
               <div className="space-y-3">
                 <button
                   type="button"
-                  onClick={(e) => handleSocialSignUp(e, 'google')}
+                  onClick={(e) => handleSocialSignUp(e, "google")}
                   disabled={socialLoading.google || recaptchaChecking}
                   className="w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -305,38 +345,66 @@ function SignUp() {
                     <Loader2 className="animate-spin h-5 w-5 mr-2" />
                   ) : (
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                      <path
+                        fill="#4285F4"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="#34A853"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="#FBBC05"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      />
+                      <path
+                        fill="#EA4335"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      />
                     </svg>
                   )}
-                  {socialLoading.google ? "Processing..." : "Continue with Google"}
+                  {socialLoading.google
+                    ? "Processing..."
+                    : "Continue with Google"}
                 </button>
 
                 <button
                   type="button"
-                  onClick={(e) => handleSocialSignUp(e, 'github')}
+                  onClick={(e) => handleSocialSignUp(e, "github")}
                   disabled={socialLoading.github || recaptchaChecking}
                   className="w-full bg-gray-900 text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {socialLoading.github ? (
                     <Loader2 className="animate-spin h-5 w-5 mr-2" />
                   ) : (
-                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                      <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd"/>
+                    <svg
+                      className="w-5 h-5 mr-2"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   )}
-                  {socialLoading.github ? "Processing..." : "Continue with GitHub"}
+                  {socialLoading.github
+                    ? "Processing..."
+                    : "Continue with GitHub"}
                 </button>
               </div>
 
               {/* Terms Notice */}
               <p className="mt-6 text-xs text-center text-gray-500">
                 By signing up, you agree to our{" "}
-                <a href="/terms" className="underline hover:text-gray-700">Terms of Service</a>
-                {" "}and{" "}
-                <a href="/privacy" className="underline hover:text-gray-700">Privacy Policy</a>
+                <a href="/terms" className="underline hover:text-gray-700">
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a href="/privacy" className="underline hover:text-gray-700">
+                  Privacy Policy
+                </a>
               </p>
             </>
           ) : (
@@ -350,16 +418,20 @@ function SignUp() {
               >
                 <CheckCircle2 className="w-8 h-8 text-green-600" />
               </m.div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Check your email</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Check your email
+              </h3>
               <p className="text-gray-600 mb-6">
-                We've sent a verification link to <span className="font-medium text-gray-900">{email}</span>
+                We've sent a verification link to{" "}
+                <span className="font-medium text-gray-900">{email}</span>
               </p>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
                 <p className="text-sm text-blue-800 mb-2">
                   Click the link in the email to complete your registration.
                 </p>
                 <p className="text-xs text-blue-700">
-                  The link will expire in 60 minutes. Didn't receive it? Check your spam folder.
+                  The link will expire in 60 minutes. Didn't receive it? Check
+                  your spam folder.
                 </p>
               </div>
               <button
@@ -382,15 +454,20 @@ function SignUp() {
         {/* Footer */}
         <p className="mt-6 text-center text-gray-600">
           Already have an account?{" "}
-          <Link to="/signin" className="font-medium text-gray-900 hover:text-gray-700 transition-colors">
+          <Link
+            to="/signin"
+            className="font-medium text-gray-900 hover:text-gray-700 transition-colors"
+          >
             Sign in
           </Link>
         </p>
 
         {/* Privacy Notice */}
         <p className="mt-4 text-xs text-center text-gray-500">
-          Protected by reCAPTCHA and subject to the KamiKoto{" "}
-          <a href="/privacy" className="underline hover:text-gray-700">Privacy Policy</a>
+          Subject to the TechHub Lesotho{" "}
+          <a href="/privacy" className="underline hover:text-gray-700">
+            Privacy Policy
+          </a>
         </p>
       </div>
     </m.div>

@@ -1,11 +1,11 @@
 /**
  * Email Service
- * 
+ *
  * This utility provides functions for sending various types of emails to users using Resend API via Cloudflare Functions.
  * It checks the featureConfig to determine if emails should be sent.
  */
 
-import featureConfig from './featureConfig';
+import featureConfig from "./featureConfig";
 // No need for Resend import as we're using server-side functions
 
 /**
@@ -14,15 +14,15 @@ import featureConfig from './featureConfig';
  */
 const getApiFunctionBaseUrl = () => {
   // Check if we're in a development environment
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
+  const isDevelopment = process.env.NODE_ENV === "development";
+
   if (isDevelopment) {
     // In development, use a local URL that can be proxied to the real endpoint
     // This should be configured in your package.json proxy field
-    return '/api';
+    return "/api";
   } else {
     // In production, use the same domain as the application
-    return '';
+    return "";
   }
 };
 
@@ -33,26 +33,37 @@ const getApiFunctionBaseUrl = () => {
 const isEmailEnabled = () => {
   // Check if email is enabled in the config
   if (!featureConfig.email.enabled) {
-    console.log('❌ Email functionality is disabled in configuration');
-    console.log('To enable email, set REACT_APP_EMAIL_ENABLED=true in your environment variables');
+    console.log("❌ Email functionality is disabled in configuration");
+    console.log(
+      "To enable email, set REACT_APP_EMAIL_ENABLED=true in your environment variables",
+    );
     return false;
   }
 
   // Log email configuration for debugging
-  console.log('📧 Email Configuration Debug:');
-  console.log('- Email enabled:', featureConfig.email.enabled);
-  console.log('- Use email server:', featureConfig.email.useEmailServer);
-  console.log('- From address:', featureConfig.email.fromAddress || 'Not set');
-  console.log('- Support email:', featureConfig.email.supportEmail || 'Not set');
-  
+  console.log("📧 Email Configuration Debug:");
+  console.log("- Email enabled:", featureConfig.email.enabled);
+  console.log("- Use email server:", featureConfig.email.useEmailServer);
+  console.log("- From address:", featureConfig.email.fromAddress || "Not set");
+  console.log(
+    "- Support email:",
+    featureConfig.email.supportEmail || "Not set",
+  );
+
   // Check environment variables more thoroughly
-  console.log('🔧 Environment Variables:');
-  console.log('- REACT_APP_EMAIL_ENABLED:', process.env.REACT_APP_EMAIL_ENABLED);
-  console.log('- EMAIL_ENABLED:', process.env.EMAIL_ENABLED);
-  console.log('- REACT_APP_EMAIL_FROM:', process.env.REACT_APP_EMAIL_FROM);
-  console.log('- EMAIL_FROM:', process.env.EMAIL_FROM);
-  console.log('- REACT_APP_RESEND_API_KEY exists:', !!process.env.REACT_APP_RESEND_API_KEY);
-  console.log('- RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+  console.log("🔧 Environment Variables:");
+  console.log(
+    "- REACT_APP_EMAIL_ENABLED:",
+    process.env.REACT_APP_EMAIL_ENABLED,
+  );
+  console.log("- EMAIL_ENABLED:", process.env.EMAIL_ENABLED);
+  console.log("- REACT_APP_EMAIL_FROM:", process.env.REACT_APP_EMAIL_FROM);
+  console.log("- EMAIL_FROM:", process.env.EMAIL_FROM);
+  console.log(
+    "- REACT_APP_RESEND_API_KEY exists:",
+    !!process.env.REACT_APP_RESEND_API_KEY,
+  );
+  console.log("- RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
 
   return true;
 };
@@ -63,46 +74,53 @@ const isEmailEnabled = () => {
  * @returns {Promise<Object>} - Result of the email sending operation
  */
 const sendEmail = async (emailData) => {
-  console.log('sendEmail function called with:', {
+  console.log("sendEmail function called with:", {
     to: emailData.to,
     subject: emailData.subject,
-    bodyLength: emailData.body?.length || 0
+    bodyLength: emailData.body?.length || 0,
   });
 
   if (!isEmailEnabled()) {
-    console.log('Email functionality is disabled, returning early from sendEmail');
-    return { success: false, error: 'Email functionality is disabled or not properly configured' };
+    console.log(
+      "Email functionality is disabled, returning early from sendEmail",
+    );
+    return {
+      success: false,
+      error: "Email functionality is disabled or not properly configured",
+    };
   }
 
   try {
-    console.log('Using API endpoint method');
+    console.log("Using API endpoint method");
     return await sendViaApiEndpoint(emailData);
   } catch (error) {
-    console.error('Error in sendEmail function:', error);
-    return { success: false, error: error.message || 'Failed to send email' };
+    console.error("Error in sendEmail function:", error);
+    return { success: false, error: error.message || "Failed to send email" };
   }
 };
 
 /**
  * Sends an email using our server API endpoint instead of calling Resend directly
  * This avoids CORS issues when calling from the client side
- * 
+ *
  * @param {Object} emailData - Email data
  * @returns {Promise<Object>} - Result of the email sending operation
  */
 const sendViaApiEndpoint = async (emailData) => {
   try {
-    console.log('Attempting to send email via API endpoint with data:', {
+    console.log("Attempting to send email via API endpoint with data:", {
       to: emailData.to,
       subject: emailData.subject,
-      fromAddress: emailData.from || featureConfig.email.fromAddress
+      fromAddress: emailData.from || featureConfig.email.fromAddress,
     });
-    
+
     // Prepare the sender with proper format
     const fromEmail = emailData.from || featureConfig.email.fromAddress;
     // Ensure proper "From" format with name - Resend requires this format
-    const formattedFrom = fromEmail.includes('<') ? fromEmail : `KamiKoto <${fromEmail}>`;
-    
+    const formattedFrom = fromEmail.includes("<")
+      ? fromEmail
+      : `TechHub Lesotho <${fromEmail}>`;
+
     // Prepare the email payload for our API
     const emailPayload = {
       from: formattedFrom,
@@ -110,34 +128,36 @@ const sendViaApiEndpoint = async (emailData) => {
       subject: emailData.subject,
       html: emailData.body,
     };
-    
-    console.log('Sending email with payload:', emailPayload);
-    
+
+    console.log("Sending email with payload:", emailPayload);
+
     // Use the Cloudflare Function endpoint
     const apiEndpoint = `${getApiFunctionBaseUrl()}/send-email`;
-    console.log('Using API endpoint:', apiEndpoint);
-    
+    console.log("Using API endpoint:", apiEndpoint);
+
     // Send the request to our server-side function
     const response = await fetch(apiEndpoint, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(emailPayload),
     });
-    
+
     // Parse the response
     const result = await response.json();
-    console.log('API endpoint response:', result);
-    
+    console.log("API endpoint response:", result);
+
     if (!response.ok || result.error) {
-      console.error('API endpoint returned an error:', result.error);
-      throw new Error(result.error?.message || 'Failed to send email via API endpoint');
+      console.error("API endpoint returned an error:", result.error);
+      throw new Error(
+        result.error?.message || "Failed to send email via API endpoint",
+      );
     }
-    
+
     return { success: true, data: result.data };
   } catch (error) {
-    console.error('Detailed error sending email via API endpoint:', error);
+    console.error("Detailed error sending email via API endpoint:", error);
     throw error;
   }
 };
@@ -158,42 +178,47 @@ const sendViaApiEndpoint = async (emailData) => {
  * @returns {Promise<Object>} - Result of the email sending operation
  */
 const sendOrderConfirmationEmail = async (order, user) => {
-  console.log('sendOrderConfirmationEmail called with:', {
+  console.log("sendOrderConfirmationEmail called with:", {
     orderId: order?.orderId,
-    userEmail: user?.email
+    userEmail: user?.email,
   });
-  
+
   if (!user || !user.email) {
-    console.error('Cannot send order confirmation: Missing user email');
-    return { success: false, error: 'Missing user email' };
+    console.error("Cannot send order confirmation: Missing user email");
+    return { success: false, error: "Missing user email" };
   }
-  
+
   if (!order || !order.orderId) {
-    console.error('Cannot send order confirmation: Invalid order data');
-    return { success: false, error: 'Invalid order data' };
+    console.error("Cannot send order confirmation: Invalid order data");
+    return { success: false, error: "Invalid order data" };
   }
-  
+
   if (!isEmailEnabled()) {
-    console.log('Email functionality is disabled, skipping order confirmation email');
-    return { success: false, error: 'Email functionality is disabled' };
+    console.log(
+      "Email functionality is disabled, skipping order confirmation email",
+    );
+    return { success: false, error: "Email functionality is disabled" };
   }
 
   try {
-    console.log('Generating email HTML template');
+    console.log("Generating email HTML template");
     const emailBody = generateOrderConfirmationHTML(order, user);
-    console.log('Email template generated, length:', emailBody.length);
-    
+    console.log("Email template generated, length:", emailBody.length);
+
     const emailData = {
       to: user.email,
-      subject: `KamiKoto - Order Confirmation #${order.orderId}`,
+      subject: `TechHub Lesotho - Order Confirmation #${order.orderId}`,
       body: emailBody,
     };
-    
-    console.log('Calling sendEmail function with email data');
+
+    console.log("Calling sendEmail function with email data");
     return await sendEmail(emailData);
   } catch (error) {
-    console.error('Error in sendOrderConfirmationEmail function:', error);
-    return { success: false, error: error.message || 'Failed to send order confirmation email' };
+    console.error("Error in sendOrderConfirmationEmail function:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to send order confirmation email",
+    };
   }
 };
 
@@ -206,28 +231,32 @@ const sendOrderConfirmationEmail = async (order, user) => {
  */
 const sendOrderShippedEmail = async (order, user, shipmentInfo) => {
   if (!user || !user.email) {
-    console.error('Cannot send shipping notification: Missing user email');
-    return { success: false, error: 'Missing user email' };
+    console.error("Cannot send shipping notification: Missing user email");
+    return { success: false, error: "Missing user email" };
   }
 
   if (!order || !order.orderId) {
-    console.error('Cannot send shipping notification: Invalid order data');
-    return { success: false, error: 'Invalid order data' };
+    console.error("Cannot send shipping notification: Invalid order data");
+    return { success: false, error: "Invalid order data" };
   }
 
   if (!shipmentInfo) {
-    console.error('Cannot send shipping notification: Missing shipment information');
-    return { success: false, error: 'Missing shipment information' };
+    console.error(
+      "Cannot send shipping notification: Missing shipment information",
+    );
+    return { success: false, error: "Missing shipment information" };
   }
 
   if (!isEmailEnabled()) {
-    console.log('Email functionality is disabled, skipping shipping notification email');
-    return { success: false, error: 'Email functionality is disabled' };
+    console.log(
+      "Email functionality is disabled, skipping shipping notification email",
+    );
+    return { success: false, error: "Email functionality is disabled" };
   }
 
   try {
     const emailBody = generateOrderShippedHTML(order, user, shipmentInfo);
-    
+
     const emailData = {
       to: user.email,
       subject: `Your Order #${order.orderId} Has Shipped`,
@@ -236,14 +265,17 @@ const sendOrderShippedEmail = async (order, user, shipmentInfo) => {
 
     return await sendEmail(emailData);
   } catch (error) {
-    console.error('Error sending order shipped email:', error);
-    return { success: false, error: error.message || 'Failed to send order shipped email' };
+    console.error("Error sending order shipped email:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to send order shipped email",
+    };
   }
 };
 
 /**
  * Generates HTML content for order confirmation emails
- * 
+ *
  * @param {Object} order - Order details
  * @param {Object} user - User details
  * @returns {string} - HTML content for the email
@@ -256,16 +288,13 @@ const generateOrderConfirmationHTML = (order, user) => {
   const discount = order.discount || 0;
   const total = order.totalAmount || 0;
   const importDuty = order.importDuty || 0;
-  
+
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 2,
-    }).format(amount);
+    const num = Number(amount) || 0;
+    return `M${num.toLocaleString("en-LS", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
-  
+
   /**
    * Minimal CSS styling inspired by shadcn UI
    * Clean, simple design with subtle borders and shadows
@@ -287,7 +316,7 @@ const generateOrderConfirmationHTML = (order, user) => {
       }
     }
   `;
-  
+
   /**
    * Process image URL to ensure compatibility with email clients
    * Handles i.imgur.com and other image hosting services for better email delivery
@@ -296,39 +325,42 @@ const generateOrderConfirmationHTML = (order, user) => {
    */
   const processImageForEmail = (imageUrl) => {
     if (!imageUrl) return null;
-    
+
     // Handle i.imgur.com URLs - ensure they use direct image links
-    if (imageUrl.includes('i.imgur.com')) {
+    if (imageUrl.includes("i.imgur.com")) {
       // Ensure the URL ends with a proper image extension for email clients
       if (!imageUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
         return `${imageUrl}.jpg`; // Add .jpg extension for email client compatibility
       }
     }
-    
+
     return imageUrl;
   };
 
   // Generate minimal HTML for order items
-  const itemsHTML = order.items.map((item, index) => {
-    const truncatedName = item.name.length > 50 ? item.name.substring(0, 47) + '...' : item.name;
-    const processedImageUrl = processImageForEmail(item.image);
+  const itemsHTML = order.items
+    .map((item, index) => {
+      const truncatedName =
+        item.name.length > 50 ? item.name.substring(0, 47) + "..." : item.name;
+      const processedImageUrl = processImageForEmail(item.image);
 
-    return `
+      return `
     <tr>
       <td style="padding: 20px 24px; border-bottom: 1px solid #e5e7eb;">
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
           <tr>
             <td width="80" style="vertical-align: top; padding-right: 16px;">
-              ${processedImageUrl ?
-                `<img src="${processedImageUrl}" alt="${truncatedName}" style="
+              ${
+                processedImageUrl
+                  ? `<img src="${processedImageUrl}" alt="${truncatedName}" style="
                   width: 80px;
                   height: 80px;
                   object-fit: cover;
                   border-radius: 8px;
                   border: 1px solid #e5e7eb;
                   display: block;
-                " />` :
-                `<div style="
+                " />`
+                  : `<div style="
                   width: 80px;
                   height: 80px;
                   border-radius: 8px;
@@ -354,8 +386,10 @@ const generateOrderConfirmationHTML = (order, user) => {
         </table>
       </td>
     </tr>
-  `}).join('');
-  
+  `;
+    })
+    .join("");
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -399,8 +433,8 @@ const generateOrderConfirmationHTML = (order, user) => {
                   <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
                     <tr>
                       <td align="left">
-                        <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; letter-spacing: -0.5px;">KamiKoto</h1>
-                        <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">Your Premium Stationery Destination</p>
+                        <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; letter-spacing: -0.5px;">TechHub Lesotho</h1>
+                        <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">Your ICT Products &amp; Web Hosting Destination</p>
                       </td>
                     </tr>
                   </table>
@@ -414,13 +448,13 @@ const generateOrderConfirmationHTML = (order, user) => {
                     <tr>
                       <td style="text-align: center;">
                         <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 600; color: #111827; letter-spacing: -0.5px;">Order Confirmed</h2>
-                        <p style="margin: 0 0 24px 0; color: #6b7280; font-size: 15px; line-height: 1.5;">Hello ${user.displayName || user.email?.split('@')[0] || 'Valued Customer'}, thank you for your order!</p>
+                        <p style="margin: 0 0 24px 0; color: #6b7280; font-size: 15px; line-height: 1.5;">Hello ${user.displayName || user.email?.split("@")[0] || "Valued Customer"}, thank you for your order!</p>
 
                         <div style="display: inline-block; padding: 12px 24px; background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 16px;">
                           <p style="margin: 0; font-size: 14px; font-weight: 600; color: #111827;">Order #${order.orderId}</p>
                         </div>
 
-                        <p style="margin: 0 0 24px 0; font-size: 14px; color: #6b7280;">${new Date(order.orderDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                        <p style="margin: 0 0 24px 0; font-size: 14px; color: #6b7280;">${new Date(order.orderDate).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>
 
                         <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; text-align: left;">
                           <p style="margin: 0 0 4px 0; color: #111827; font-size: 14px; font-weight: 500;">
@@ -474,18 +508,20 @@ const generateOrderConfirmationHTML = (order, user) => {
                             </td>
                           </tr>
                           <tr>
-                            <td style="padding-bottom: ${importDuty > 0 || discount > 0 ? '8px' : '0'};">
+                            <td style="padding-bottom: ${importDuty > 0 || discount > 0 ? "8px" : "0"};">
                               <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
                                 <tr>
                                   <td style="font-size: 14px; color: #6b7280;">Shipping</td>
-                                  <td style="font-size: 14px; color: #111827; text-align: right;">${shipping === 0 ? 'Free' : formatCurrency(shipping)}</td>
+                                  <td style="font-size: 14px; color: #111827; text-align: right;">${shipping === 0 ? "Free" : formatCurrency(shipping)}</td>
                                 </tr>
                               </table>
                             </td>
                           </tr>
-                          ${importDuty > 0 ? `
+                          ${
+                            importDuty > 0
+                              ? `
                           <tr>
-                            <td style="padding-bottom: ${discount > 0 ? '8px' : '0'};">
+                            <td style="padding-bottom: ${discount > 0 ? "8px" : "0"};">
                               <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
                                 <tr>
                                   <td style="font-size: 14px; color: #ea580c;">Import Duty (69%)</td>
@@ -494,8 +530,12 @@ const generateOrderConfirmationHTML = (order, user) => {
                               </table>
                             </td>
                           </tr>
-                          ` : ''}
-                          ${discount > 0 ? `
+                          `
+                              : ""
+                          }
+                          ${
+                            discount > 0
+                              ? `
                           <tr>
                             <td style="padding-bottom: 0;">
                               <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
@@ -506,12 +546,14 @@ const generateOrderConfirmationHTML = (order, user) => {
                               </table>
                             </td>
                           </tr>
-                          ` : ''}
+                          `
+                              : ""
+                          }
                           <tr>
                             <td style="padding-top: 12px; border-top: 1px solid #e5e7eb;">
                               <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
                                 <tr>
-                                  <td style="font-size: 15px; font-weight: 600; color: #111827;">Total (${order.items.length} ${order.items.length === 1 ? 'item' : 'items'})</td>
+                                  <td style="font-size: 15px; font-weight: 600; color: #111827;">Total (${order.items.length} ${order.items.length === 1 ? "item" : "items"})</td>
                                   <td style="font-size: 15px; font-weight: 600; color: #111827; text-align: right;">${formatCurrency(total)}</td>
                                 </tr>
                               </table>
@@ -528,15 +570,15 @@ const generateOrderConfirmationHTML = (order, user) => {
                       <td width="50%" valign="top" style="padding-right: 20px;">
                         <h3 style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #111827;">Shipping Address</h3>
                         <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.6;">
-                          ${order.shippingAddress?.name || order.userName || 'Customer'}<br>
-                          ${order.shippingAddress?.street || ''}<br>
-                          ${order.shippingAddress?.city || ''}, ${order.shippingAddress?.state || ''} ${order.shippingAddress?.zip || ''}<br>
-                          ${order.shippingAddress?.country || ''}
+                          ${order.shippingAddress?.name || order.userName || "Customer"}<br>
+                          ${order.shippingAddress?.street || ""}<br>
+                          ${order.shippingAddress?.city || ""}, ${order.shippingAddress?.state || ""} ${order.shippingAddress?.zip || ""}<br>
+                          ${order.shippingAddress?.country || ""}
                         </p>
                       </td>
                       <td width="50%" valign="top">
                         <h3 style="margin: 0 0 8px; font-size: 14px; font-weight: 600; color: #111827;">Payment Method</h3>
-                        <p style="margin: 0 0 12px 0; font-size: 14px; color: #6b7280;">${order.payment?.method || 'Credit card'}</p>
+                        <p style="margin: 0 0 12px 0; font-size: 14px; color: #6b7280;">${order.payment?.method || "Credit card"}</p>
                         <p style="margin: 0; font-size: 14px; color: #16a34a; font-weight: 500;">Payment Status: Completed</p>
                       </td>
                     </tr>
@@ -566,13 +608,13 @@ const generateOrderConfirmationHTML = (order, user) => {
                   <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
                     <tr>
                       <td style="text-align: center;">
-                        <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #111827;">KamiKoto</p>
-                        <p style="margin: 0 0 16px 0; font-size: 13px; color: #6b7280;">Your Premium Stationery Destination</p>
+                        <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #111827;">TechHub Lesotho</p>
+                        <p style="margin: 0 0 16px 0; font-size: 13px; color: #6b7280;">Your ICT Products &amp; Web Hosting Destination</p>
                         <p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280;">
                           Questions? <a href="mailto:${featureConfig.email.supportEmail}" style="color: #111827; text-decoration: underline;">${featureConfig.email.supportEmail}</a>
                         </p>
                         <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                          © ${new Date().getFullYear()} KamiKoto. All Rights Reserved.
+                          © ${new Date().getFullYear()} TechHub Lesotho. All Rights Reserved.
                         </p>
                       </td>
                     </tr>
@@ -600,13 +642,10 @@ const generateOrderConfirmationHTML = (order, user) => {
 const generateOrderShippedHTML = (order, user, shipmentInfo) => {
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 2,
-    }).format(amount);
+    const num = Number(amount) || 0;
+    return `M${num.toLocaleString("en-LS", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
-  
+
   /**
    * Minimal CSS styling inspired by shadcn UI
    */
@@ -616,7 +655,7 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
     }
   `;
-  
+
   /**
    * Process image URL for email client compatibility (same function as order confirmation)
    * @param {string} imageUrl - Original image URL
@@ -624,39 +663,42 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
    */
   const processImageForEmailShipped = (imageUrl) => {
     if (!imageUrl) return null;
-    
+
     // Handle i.imgur.com URLs - ensure they use direct image links
-    if (imageUrl.includes('i.imgur.com')) {
+    if (imageUrl.includes("i.imgur.com")) {
       // Ensure the URL ends with a proper image extension for email clients
       if (!imageUrl.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
         return `${imageUrl}.jpg`; // Add .jpg extension for email client compatibility
       }
     }
-    
+
     return imageUrl;
   };
 
   // Generate minimal HTML for order items in shipping notification
-  const itemsHTML = order.items.map((item, index) => {
-    const truncatedName = item.name.length > 50 ? item.name.substring(0, 47) + '...' : item.name;
-    const processedImageUrl = processImageForEmailShipped(item.image);
+  const itemsHTML = order.items
+    .map((item, index) => {
+      const truncatedName =
+        item.name.length > 50 ? item.name.substring(0, 47) + "..." : item.name;
+      const processedImageUrl = processImageForEmailShipped(item.image);
 
-    return `
+      return `
     <tr>
       <td style="padding: 16px 20px; border-bottom: 1px solid #e5e7eb;">
         <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
           <tr>
             <td width="70" style="vertical-align: top; padding-right: 16px;">
-              ${processedImageUrl ?
-                `<img src="${processedImageUrl}" alt="${truncatedName}" style="
+              ${
+                processedImageUrl
+                  ? `<img src="${processedImageUrl}" alt="${truncatedName}" style="
                   width: 70px;
                   height: 70px;
                   object-fit: cover;
                   border-radius: 6px;
                   border: 1px solid #e5e7eb;
                   display: block;
-                " />` :
-                `<div style="
+                " />`
+                  : `<div style="
                   width: 70px;
                   height: 70px;
                   border-radius: 6px;
@@ -678,8 +720,10 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
         </table>
       </td>
     </tr>
-  `}).join('');
-  
+  `;
+    })
+    .join("");
+
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -709,8 +753,8 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
             <table style="width: 600px; max-width: 600px; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px;" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation">
               <tr>
                 <td style="padding: 32px 40px; border-bottom: 1px solid #e5e7eb;">
-                  <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; letter-spacing: -0.5px;">KamiKoto</h1>
-                  <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">Your Premium Stationery Destination</p>
+                  <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; letter-spacing: -0.5px;">TechHub Lesotho</h1>
+                  <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">Your ICT Products &amp; Web Hosting Destination</p>
                 </td>
               </tr>
 
@@ -747,11 +791,15 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
                   </div>
 
                   <!-- Tracking Button -->
-                  ${shipmentInfo.trackingUrl ? `
+                  ${
+                    shipmentInfo.trackingUrl
+                      ? `
                   <div style="text-align: center; margin-bottom: 32px;">
                     <a href="${shipmentInfo.trackingUrl}" target="_blank" style="display: inline-block; background-color: #111827; color: #ffffff; font-size: 14px; font-weight: 500; text-decoration: none; padding: 12px 24px; border-radius: 6px;">Track Your Package</a>
                   </div>
-                  ` : ''}
+                  `
+                      : ""
+                  }
 
                   <!-- Products Section -->
                   <div style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; margin-bottom: 32px;">
@@ -767,10 +815,10 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
                   <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 20px; margin-bottom: 32px;">
                     <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: #111827;">Shipping Address</h3>
                     <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.6;">
-                      <span style="font-weight: 500; color: #111827;">${order.shippingAddress?.name || order.userName || 'Customer'}</span><br>
-                      ${order.shippingAddress?.street || ''}<br>
-                      ${order.shippingAddress?.city || ''}, ${order.shippingAddress?.state || ''} ${order.shippingAddress?.zip || ''}<br>
-                      ${order.shippingAddress?.country || ''}
+                      <span style="font-weight: 500; color: #111827;">${order.shippingAddress?.name || order.userName || "Customer"}</span><br>
+                      ${order.shippingAddress?.street || ""}<br>
+                      ${order.shippingAddress?.city || ""}, ${order.shippingAddress?.state || ""} ${order.shippingAddress?.zip || ""}<br>
+                      ${order.shippingAddress?.country || ""}
                     </p>
                   </div>
 
@@ -802,7 +850,7 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
                           </td>
                         </tr>
                         <tr>
-                          <td style="padding-bottom: ${order.importDuty > 0 || order.discount > 0 ? '8px' : '0'};">
+                          <td style="padding-bottom: ${order.importDuty > 0 || order.discount > 0 ? "8px" : "0"};">
                             <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
                               <tr>
                                 <td style="font-size: 14px; color: #6b7280;">Tax</td>
@@ -811,9 +859,11 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
                             </table>
                           </td>
                         </tr>
-                        ${order.importDuty > 0 ? `
+                        ${
+                          order.importDuty > 0
+                            ? `
                         <tr>
-                          <td style="padding-bottom: ${order.discount > 0 ? '8px' : '0'};">
+                          <td style="padding-bottom: ${order.discount > 0 ? "8px" : "0"};">
                             <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
                               <tr>
                                 <td style="font-size: 14px; color: #ea580c;">Import Duty</td>
@@ -822,8 +872,12 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
                             </table>
                           </td>
                         </tr>
-                        ` : ''}
-                        ${order.discount > 0 ? `
+                        `
+                            : ""
+                        }
+                        ${
+                          order.discount > 0
+                            ? `
                         <tr>
                           <td style="padding-bottom: 0;">
                             <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
@@ -834,7 +888,9 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
                             </table>
                           </td>
                         </tr>
-                        ` : ''}
+                        `
+                            : ""
+                        }
                         <tr>
                           <td style="padding-top: 12px; border-top: 1px solid #e5e7eb;">
                             <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
@@ -860,13 +916,13 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
               <!-- Footer -->
               <tr>
                 <td style="padding: 32px 40px; background-color: #f9fafb; border-top: 1px solid #e5e7eb; text-align: center;">
-                  <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #111827;">KamiKoto</p>
-                  <p style="margin: 0 0 16px 0; font-size: 13px; color: #6b7280;">Your Premium Stationery Destination</p>
+                  <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #111827;">TechHub Lesotho</p>
+                  <p style="margin: 0 0 16px 0; font-size: 13px; color: #6b7280;">Your ICT Products &amp; Web Hosting Destination</p>
                   <p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280;">
                     Questions? <a href="mailto:${featureConfig.email.supportEmail}" style="color: #111827; text-decoration: underline;">${featureConfig.email.supportEmail}</a>
                   </p>
                   <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                    © ${new Date().getFullYear()} KamiKoto. All Rights Reserved.
+                    © ${new Date().getFullYear()} TechHub Lesotho. All Rights Reserved.
                   </p>
                 </td>
               </tr>
@@ -886,39 +942,42 @@ const generateOrderShippedHTML = (order, user, shipmentInfo) => {
  * @returns {Promise<Object>} - Result of the email sending operation
  */
 const sendMagicLinkEmail = async (email, magicLink) => {
-  console.log('sendMagicLinkEmail called with email:', email);
+  console.log("sendMagicLinkEmail called with email:", email);
 
   if (!email) {
-    console.error('Cannot send magic link: Missing user email');
-    return { success: false, error: 'Missing user email' };
+    console.error("Cannot send magic link: Missing user email");
+    return { success: false, error: "Missing user email" };
   }
 
   if (!magicLink) {
-    console.error('Cannot send magic link: Missing magic link URL');
-    return { success: false, error: 'Missing magic link URL' };
+    console.error("Cannot send magic link: Missing magic link URL");
+    return { success: false, error: "Missing magic link URL" };
   }
 
   if (!isEmailEnabled()) {
-    console.log('Email functionality is disabled, skipping magic link email');
-    return { success: false, error: 'Email functionality is disabled' };
+    console.log("Email functionality is disabled, skipping magic link email");
+    return { success: false, error: "Email functionality is disabled" };
   }
 
   try {
-    console.log('Generating magic link email HTML template');
+    console.log("Generating magic link email HTML template");
     const emailBody = generateMagicLinkHTML(email, magicLink);
-    console.log('Email template generated, length:', emailBody.length);
+    console.log("Email template generated, length:", emailBody.length);
 
     const emailData = {
       to: email,
-      subject: 'Sign in to KamiKoto - Your Magic Link',
+      subject: "Sign in to TechHub Lesotho - Your Magic Link",
       body: emailBody,
     };
 
-    console.log('Calling sendEmail function with magic link data');
+    console.log("Calling sendEmail function with magic link data");
     return await sendEmail(emailData);
   } catch (error) {
-    console.error('Error in sendMagicLinkEmail function:', error);
-    return { success: false, error: error.message || 'Failed to send magic link email' };
+    console.error("Error in sendMagicLinkEmail function:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to send magic link email",
+    };
   }
 };
 
@@ -955,7 +1014,7 @@ const generateMagicLinkHTML = (email, magicLink) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
   <meta name="x-apple-disable-message-reformatting">
-  <title>Sign in to KamiKoto</title>
+  <title>Sign in to TechHub Lesotho</title>
   <style type="text/css">
     body, table, td {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
@@ -981,8 +1040,8 @@ const generateMagicLinkHTML = (email, magicLink) => {
                   <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
                     <tr>
                       <td align="left">
-                        <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; letter-spacing: -0.5px;">KamiKoto</h1>
-                        <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">Your Premium Stationery Destination</p>
+                        <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; letter-spacing: -0.5px;">TechHub Lesotho</h1>
+                        <p style="margin: 4px 0 0; font-size: 14px; color: #6b7280;">Your ICT Products &amp; Web Hosting Destination</p>
                       </td>
                     </tr>
                   </table>
@@ -996,7 +1055,7 @@ const generateMagicLinkHTML = (email, magicLink) => {
                     <tr>
                       <td style="text-align: center;">
                         <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 600; color: #111827; letter-spacing: -0.5px;">Sign In to Your Account</h2>
-                        <p style="margin: 0 0 24px 0; color: #6b7280; font-size: 15px; line-height: 1.5;">Click the button below to securely sign in to your KamiKoto account.</p>
+                        <p style="margin: 0 0 24px 0; color: #6b7280; font-size: 15px; line-height: 1.5;">Click the button below to securely sign in to your TechHub Lesotho account.</p>
 
                         <div style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; text-align: left; margin-bottom: 24px;">
                           <p style="margin: 0 0 4px 0; color: #111827; font-size: 14px; font-weight: 500;">
@@ -1009,7 +1068,7 @@ const generateMagicLinkHTML = (email, magicLink) => {
 
                         <!-- Magic Link Button -->
                         <div style="text-align: center; margin-bottom: 24px;">
-                          <a href="${magicLink}" target="_blank" style="display: inline-block; background-color: #111827; color: #ffffff; font-size: 16px; font-weight: 500; text-decoration: none; padding: 14px 32px; border-radius: 6px; margin: 0 auto;">Sign In to KamiKoto</a>
+                          <a href="${magicLink}" target="_blank" style="display: inline-block; background-color: #111827; color: #ffffff; font-size: 16px; font-weight: 500; text-decoration: none; padding: 14px 32px; border-radius: 6px; margin: 0 auto;">Sign In to TechHub Lesotho</a>
                         </div>
 
                         <div style="background-color: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; padding: 16px; text-align: left;">
@@ -1067,13 +1126,13 @@ const generateMagicLinkHTML = (email, magicLink) => {
                   <table width="100%" cellpadding="0" cellspacing="0" role="presentation">
                     <tr>
                       <td style="text-align: center;">
-                        <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #111827;">KamiKoto</p>
-                        <p style="margin: 0 0 16px 0; font-size: 13px; color: #6b7280;">Your Premium Stationery Destination</p>
+                        <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: #111827;">TechHub Lesotho</p>
+                        <p style="margin: 0 0 16px 0; font-size: 13px; color: #6b7280;">Your ICT Products &amp; Web Hosting Destination</p>
                         <p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280;">
                           Questions? <a href="mailto:${featureConfig.email.supportEmail}" style="color: #111827; text-decoration: underline;">${featureConfig.email.supportEmail}</a>
                         </p>
                         <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                          © ${new Date().getFullYear()} KamiKoto. All Rights Reserved.
+                          © ${new Date().getFullYear()} TechHub Lesotho. All Rights Reserved.
                         </p>
                       </td>
                     </tr>
@@ -1097,5 +1156,5 @@ export {
   sendOrderShippedEmail,
   sendMagicLinkEmail,
   isEmailEnabled,
-  sendEmail
-}; 
+  sendEmail,
+};

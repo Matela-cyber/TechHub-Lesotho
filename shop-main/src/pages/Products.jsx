@@ -144,19 +144,22 @@ function Products() {
     });
   };
 
-  const categoriesOrder = useMemo(
-    () => [
-      "Notebooks and Journals",
-      "Pens and Pencils",
-      "Paper and Notepads",
-      "Planners and Calendars",
-      "Office Supplies",
-      "Art Supplies",
-      "Desk Accessories",
-      "Cards and Envelopes",
-      "Writing Accessories",
-      "Gift Wrap and Packaging",
-    ],
+  const SERVICE_CATEGORY_SET = useMemo(
+    () =>
+      new Set([
+        "Software & Licenses",
+        "Cloud Services & SaaS",
+        "Web Hosting & Domains",
+        "VPS & Dedicated Servers",
+        "Managed IT Services",
+        "Cybersecurity Services",
+        "Online Courses & Training",
+        "API & Developer Tools",
+        "Data & Analytics Services",
+        "Backup & Disaster Recovery",
+        "Telecommunications",
+        "IT Consulting & Projects",
+      ]),
     [],
   );
 
@@ -167,91 +170,74 @@ function Products() {
         typeof product.price === "string"
           ? parseFloat(product.price)
           : product.price,
-      originalPrice: product.originalPrice
-        ? typeof product.originalPrice === "string"
-          ? parseFloat(product.originalPrice)
-          : product.originalPrice
-        : null,
       stock:
         typeof product.stock === "string"
           ? parseInt(product.stock, 10)
           : product.stock,
     }));
 
-    return categoriesOrder.map((category) => ({
-      category,
-      items: processedProducts.filter((product) => {
-        if (product.type !== category) return false;
-
-        if (
-          filters.priceRange.min &&
-          product.price < parseFloat(filters.priceRange.min)
-        )
-          return false;
-        if (
-          filters.priceRange.max &&
-          product.price > parseFloat(filters.priceRange.max)
-        )
-          return false;
-
-        if (
-          filters.brands.length > 0 &&
-          !filters.brands.includes(product.brand)
-        )
-          return false;
-        if (filters.types.length > 0 && !filters.types.includes(product.type))
-          return false;
-
-        if (filters.origin && product.origin !== filters.origin) return false;
-
-        if (filters.importStatus) {
-          const isImported = product.importDetails?.isImported;
-          if (filters.importStatus === "imported" && !isImported) return false;
-          if (filters.importStatus === "local" && isImported) return false;
-        }
-
-        if (filters.warranty && !product.warranty?.available) return false;
-        if (filters.guarantee && !product.guarantee?.available) return false;
-        if (filters.inStock && product.stock <= 0) return false;
-
-        if (searchTerm === "") return true;
-
-        const term = searchTerm.toLowerCase();
-
-        if (product.name?.toLowerCase().includes(term)) return true;
-        if (product.description?.toLowerCase().includes(term)) return true;
-        if (product.brand?.toLowerCase().includes(term)) return true;
-        if (product.slug?.toLowerCase().includes(term)) return true;
-        if (product.origin?.toLowerCase().includes(term)) return true;
-        if (product.additionalInfo?.toLowerCase().includes(term)) return true;
-        if (product.tags?.some((tag) => tag.toLowerCase().includes(term)))
-          return true;
-
-        if (product.warranty?.available) {
-          if (product.warranty.details?.toLowerCase().includes(term))
-            return true;
-          if (product.warranty.period?.toLowerCase().includes(term))
-            return true;
-        }
-
-        if (product.guarantee?.available) {
-          if (product.guarantee.details?.toLowerCase().includes(term))
-            return true;
-          if (product.guarantee.period?.toLowerCase().includes(term))
-            return true;
-        }
-
-        if (product.importDetails?.isImported) {
-          if (product.importDetails.country?.toLowerCase().includes(term))
-            return true;
-          if (product.importDetails.deliveryNote?.toLowerCase().includes(term))
-            return true;
-        }
-
+    // Apply filters and search
+    const filtered = processedProducts.filter((product) => {
+      if (
+        filters.priceRange.min &&
+        product.price < parseFloat(filters.priceRange.min)
+      )
         return false;
-      }),
-    }));
-  }, [products, searchTerm, categoriesOrder, filters]);
+      if (
+        filters.priceRange.max &&
+        product.price > parseFloat(filters.priceRange.max)
+      )
+        return false;
+      if (filters.brands.length > 0 && !filters.brands.includes(product.brand))
+        return false;
+      if (filters.types.length > 0 && !filters.types.includes(product.type))
+        return false;
+      if (
+        filters.inStock &&
+        product.listingType !== "service" &&
+        !(product.stock > 0)
+      )
+        return false;
+      if (filters.warranty && !product.warranty?.available) return false;
+      if (filters.guarantee && !product.guarantee?.available) return false;
+      if (filters.origin && product.origin !== filters.origin) return false;
+      if (filters.importStatus) {
+        const isImported = product.importDetails?.isImported;
+        if (filters.importStatus === "imported" && !isImported) return false;
+        if (filters.importStatus === "local" && isImported) return false;
+      }
+
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return (
+        product.name?.toLowerCase().includes(term) ||
+        product.description?.toLowerCase().includes(term) ||
+        product.brand?.toLowerCase().includes(term) ||
+        product.type?.toLowerCase().includes(term) ||
+        product.slug?.toLowerCase().includes(term) ||
+        product.additionalInfo?.toLowerCase().includes(term) ||
+        product.tags?.some((tag) => tag.toLowerCase().includes(term))
+      );
+    });
+
+    // Group dynamically by product.type
+    const grouped = {};
+    filtered.forEach((product) => {
+      const cat = product.type || "Uncategorized";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(product);
+    });
+
+    // Sort: goods first, services second, both alphabetically within group
+    return Object.entries(grouped)
+      .map(([category, items]) => ({ category, items }))
+      .sort((a, b) => {
+        const aIsService = SERVICE_CATEGORY_SET.has(a.category);
+        const bIsService = SERVICE_CATEGORY_SET.has(b.category);
+        if (aIsService !== bIsService) return aIsService ? 1 : -1;
+        return a.category.localeCompare(b.category);
+      });
+  }, [products, searchTerm, filters, SERVICE_CATEGORY_SET]);
 
   const handleLoadMore = useCallback((category) => {
     setVisibleCounts((prevCounts) => ({
@@ -309,7 +295,7 @@ function Products() {
             Our Collection
           </h1>
           <p className="text-gray-600">
-            Explore our premium stationery products
+            Explore our computers, ICT products &amp; web hosting services
           </p>
         </m.div>
 
@@ -651,6 +637,7 @@ function Products() {
         <div className="space-y-8">
           {categorizedProducts.map(({ category, items }, index) => {
             const visibleItems = items.slice(0, visibleCounts[category] || 12);
+            const isServiceCat = SERVICE_CATEGORY_SET.has(category);
 
             if (items.length === 0) return null;
 
@@ -663,12 +650,25 @@ function Products() {
                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
               >
                 {/* Category Header */}
-                <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4">
-                  <h2 className="text-xl font-semibold text-white">
-                    {category}
-                  </h2>
+                <div
+                  className={`px-6 py-4 ${
+                    isServiceCat
+                      ? "bg-gradient-to-r from-purple-700 to-indigo-700"
+                      : "bg-gradient-to-r from-gray-900 to-gray-800"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {isServiceCat && (
+                      <span className="text-xs font-bold bg-white/20 text-white px-2 py-0.5 rounded-full">
+                        Digital Service
+                      </span>
+                    )}
+                    <h2 className="text-xl font-semibold text-white">
+                      {category}
+                    </h2>
+                  </div>
                   <p className="text-gray-300 text-sm mt-1">
-                    {items.length} items
+                    {items.length} listing{items.length !== 1 ? "s" : ""}
                   </p>
                 </div>
 
@@ -703,6 +703,19 @@ function Products() {
         </div>
 
         {/* No Results */}
+        {categorizedProducts.length === 0 && products.length > 0 && (
+          <div className="text-center py-20">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+              <Search className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No results found
+            </h3>
+            <p className="text-gray-600">
+              Try adjusting your search or filters
+            </p>
+          </div>
+        )}
         {products.length === 0 && (
           <div className="text-center py-20">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">

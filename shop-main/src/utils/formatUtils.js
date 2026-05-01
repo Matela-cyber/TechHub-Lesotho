@@ -1,6 +1,6 @@
 /**
- * Utilities for formatting numbers and currencies in Indian format
- * Following the Indian numbering system with groupings in lakhs and crores
+ * Utilities for formatting numbers and currencies
+ * Using Lesotho Loti (Maloti) as currency symbol: M
  */
 
 /**
@@ -13,38 +13,38 @@
 export const formatIndianNumber = (amount, decimals = 2) => {
   // Convert to string with fixed decimals
   const formattedNumber = parseFloat(amount).toFixed(decimals);
-  
+
   // Split the whole and decimal parts
-  let [wholePart, decimalPart] = formattedNumber.split('.');
-  
+  let [wholePart, decimalPart] = formattedNumber.split(".");
+
   // Format the whole part with Indian grouping
   let lastThree = wholePart.substring(wholePart.length - 3);
   let remaining = wholePart.substring(0, wholePart.length - 3);
-  
+
   if (remaining) {
     // Add commas after every two digits from right to left
-    let formattedRemaining = '';
+    let formattedRemaining = "";
     for (let i = remaining.length - 1, count = 0; i >= 0; i--, count++) {
       formattedRemaining = remaining.charAt(i) + formattedRemaining;
       if (count === 1 && i !== 0) {
-        formattedRemaining = ',' + formattedRemaining;
+        formattedRemaining = "," + formattedRemaining;
         count = -1;
       }
     }
-    wholePart = formattedRemaining + ',' + lastThree;
+    wholePart = formattedRemaining + "," + lastThree;
   }
-  
-  return `${wholePart}${decimalPart ? '.' + decimalPart : ''}`;
+
+  return `${wholePart}${decimalPart ? "." + decimalPart : ""}`;
 };
 
 /**
  * Format a currency amount to Indian Rupees format
  * @param {number} amount - The amount to format
  * @param {number} decimals - Number of decimal places (default: 2)
- * @returns {string} - Formatted currency string with ₹ symbol
+ * @returns {string} - Formatted currency string with M symbol
  */
 export const formatCurrency = (amount, decimals = 2) => {
-  return `₹${formatIndianNumber(amount, decimals)}`;
+  return `M${formatIndianNumber(amount, decimals)}`;
 };
 
 /**
@@ -54,7 +54,7 @@ export const formatCurrency = (amount, decimals = 2) => {
  * @returns {string} - Formatted string with 'lakh' suffix
  */
 export const formatLakhs = (value, decimals = 1) => {
-  return `₹${(value/100000).toFixed(decimals)} lakh`;
+  return `M${(value / 100000).toFixed(decimals)}L`;
 };
 
 /**
@@ -64,7 +64,7 @@ export const formatLakhs = (value, decimals = 1) => {
  * @returns {string} - Formatted string with 'crore' suffix
  */
 export const formatCrores = (value, decimals = 2) => {
-  return `₹${(value/10000000).toFixed(decimals)} crore`;
+  return `M${(value / 10000000).toFixed(decimals)}Cr`;
 };
 
 /**
@@ -81,4 +81,4 @@ export const formatSmartIndian = (value) => {
   } else {
     return formatCurrency(value);
   }
-}; 
+};

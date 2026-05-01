@@ -301,8 +301,8 @@ const Products = () => {
               <td className="border px-4 py-2">{product.name}</td>
               <td className="border px-4 py-2">{product.description}</td>
               <td className="border px-4 py-2">
-                ₹
-                {product.price.toLocaleString("en-IN", {
+                M
+                {product.price.toLocaleString("en-LS", {
                   minimumFractionDigits: 2,
                 })}
               </td>

@@ -1,14 +1,45 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, deleteDoc, doc, updateDoc, writeBatch } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+  writeBatch,
+} from "firebase/firestore";
 import { db } from "../../firebase";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search, Grid, List, Plus, Edit, Trash2, Eye, Package,
-  TrendingUp, TrendingDown, AlertTriangle, Check, X, Filter,
-  Download, RefreshCw, DollarSign, BarChart2, Archive
+  Search,
+  Grid,
+  List,
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Package,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  Check,
+  X,
+  Filter,
+  Download,
+  RefreshCw,
+  Tag,
+  BarChart2,
+  Archive,
 } from "react-feather";
-import { Button, Card, Input, Modal, Badge, Alert, LoadingSpinner } from "../../components/ui";
+import {
+  Button,
+  Card,
+  Input,
+  Modal,
+  Badge,
+  Alert,
+  LoadingSpinner,
+} from "../../components/ui";
 import { toast } from "react-toastify";
 import { formatCurrency } from "../../utils/formatUtils";
 
@@ -29,7 +60,7 @@ const ProductManager = () => {
   const [loading, setLoading] = useState(true);
 
   // UI States
-  const [viewMode, setViewMode] = useState('grid'); // grid or list
+  const [viewMode, setViewMode] = useState("grid"); // grid or list
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [sortBy, setSortBy] = useState("name");
@@ -41,7 +72,10 @@ const ProductManager = () => {
   // Modal States
   const [bulkModal, setBulkModal] = useState({ open: false, type: null }); // restock, addstock, delete
   const [bulkQuantity, setBulkQuantity] = useState("");
-  const [viewProductModal, setViewProductModal] = useState({ open: false, product: null });
+  const [viewProductModal, setViewProductModal] = useState({
+    open: false,
+    product: null,
+  });
   const [performingBulkOperation, setPerformingBulkOperation] = useState(false);
 
   // Stats
@@ -50,7 +84,7 @@ const ProductManager = () => {
     inStock: 0,
     outOfStock: 0,
     lowStock: 0,
-    totalValue: 0
+    totalValue: 0,
   });
 
   useEffect(() => {
@@ -61,7 +95,15 @@ const ProductManager = () => {
   useEffect(() => {
     filterAndSortProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, searchTerm, sortBy, sortOrder, filterStatus, filterPerformance, orderData]);
+  }, [
+    products,
+    searchTerm,
+    sortBy,
+    sortOrder,
+    filterStatus,
+    filterPerformance,
+    orderData,
+  ]);
 
   /**
    * Fetch all products and calculate performance metrics
@@ -73,9 +115,9 @@ const ProductManager = () => {
       // Fetch products
       const productsCol = collection(db, "products");
       const productsSnapshot = await getDocs(productsCol);
-      const productsList = productsSnapshot.docs.map(doc => ({
+      const productsList = productsSnapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
 
       // Fetch orders to calculate performance
@@ -84,20 +126,21 @@ const ProductManager = () => {
 
       // Calculate sales per product
       const salesData = {};
-      ordersSnapshot.docs.forEach(orderDoc => {
+      ordersSnapshot.docs.forEach((orderDoc) => {
         const order = orderDoc.data();
         if (order.items && Array.isArray(order.items)) {
-          order.items.forEach(item => {
+          order.items.forEach((item) => {
             const productId = item.productId || item.id;
             if (!salesData[productId]) {
               salesData[productId] = {
                 totalSales: 0,
                 totalRevenue: 0,
-                orderCount: 0
+                orderCount: 0,
               };
             }
             salesData[productId].totalSales += item.quantity || 0;
-            salesData[productId].totalRevenue += (item.price * item.quantity) || 0;
+            salesData[productId].totalRevenue +=
+              item.price * item.quantity || 0;
             salesData[productId].orderCount += 1;
           });
         }
@@ -106,31 +149,47 @@ const ProductManager = () => {
       setOrderData(salesData);
 
       // Enhance products with performance data
-      const enhancedProducts = productsList.map(product => {
-        const sales = salesData[product.id] || { totalSales: 0, totalRevenue: 0, orderCount: 0 };
+      const enhancedProducts = productsList.map((product) => {
+        const sales = salesData[product.id] || {
+          totalSales: 0,
+          totalRevenue: 0,
+          orderCount: 0,
+        };
         const stock = Number(product.stock) || 0;
 
         return {
           ...product,
           salesData: sales,
-          stockStatus: stock === 0 ? 'outofstock' : stock < 10 ? 'lowstock' : 'instock',
-          performance: sales.totalSales > 20 ? 'good' : sales.totalSales > 5 ? 'average' : 'poor',
-          isVisible: product.showOnHome !== false // Default to visible
+          stockStatus:
+            stock === 0 ? "outofstock" : stock < 10 ? "lowstock" : "instock",
+          performance:
+            sales.totalSales > 20
+              ? "good"
+              : sales.totalSales > 5
+                ? "average"
+                : "poor",
+          isVisible: product.showOnHome !== false, // Default to visible
         };
       });
 
       setProducts(enhancedProducts);
 
       // Calculate stats
-      const totalValue = enhancedProducts.reduce((sum, p) => sum + (Number(p.price) * Number(p.stock)), 0);
+      const totalValue = enhancedProducts.reduce(
+        (sum, p) => sum + Number(p.price) * Number(p.stock),
+        0,
+      );
       setStats({
         total: enhancedProducts.length,
-        inStock: enhancedProducts.filter(p => p.stockStatus === 'instock').length,
-        outOfStock: enhancedProducts.filter(p => p.stockStatus === 'outofstock').length,
-        lowStock: enhancedProducts.filter(p => p.stockStatus === 'lowstock').length,
-        totalValue
+        inStock: enhancedProducts.filter((p) => p.stockStatus === "instock")
+          .length,
+        outOfStock: enhancedProducts.filter(
+          (p) => p.stockStatus === "outofstock",
+        ).length,
+        lowStock: enhancedProducts.filter((p) => p.stockStatus === "lowstock")
+          .length,
+        totalValue,
       });
-
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Failed to load products");
@@ -147,21 +206,26 @@ const ProductManager = () => {
 
     // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(product =>
-        product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.type?.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (product) =>
+          product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          product.type?.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
     // Stock status filter
     if (filterStatus !== "all") {
-      filtered = filtered.filter(product => product.stockStatus === filterStatus);
+      filtered = filtered.filter(
+        (product) => product.stockStatus === filterStatus,
+      );
     }
 
     // Performance filter
     if (filterPerformance !== "all") {
-      filtered = filtered.filter(product => product.performance === filterPerformance);
+      filtered = filtered.filter(
+        (product) => product.performance === filterPerformance,
+      );
     }
 
     // Sorting
@@ -208,10 +272,10 @@ const ProductManager = () => {
    * Toggle product selection
    */
   const toggleProductSelection = (productId) => {
-    setSelectedProducts(prev =>
+    setSelectedProducts((prev) =>
       prev.includes(productId)
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
+        ? prev.filter((id) => id !== productId)
+        : [...prev, productId],
     );
   };
 
@@ -222,7 +286,7 @@ const ProductManager = () => {
     if (selectedProducts.length === filteredProducts.length) {
       setSelectedProducts([]);
     } else {
-      setSelectedProducts(filteredProducts.map(p => p.id));
+      setSelectedProducts(filteredProducts.map((p) => p.id));
     }
   };
 
@@ -239,11 +303,11 @@ const ProductManager = () => {
       setPerformingBulkOperation(true);
       const batch = writeBatch(db);
 
-      selectedProducts.forEach(productId => {
+      selectedProducts.forEach((productId) => {
         const productRef = doc(db, "products", productId);
         batch.update(productRef, {
           stock: Number(bulkQuantity),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
       });
 
@@ -275,15 +339,17 @@ const ProductManager = () => {
       setPerformingBulkOperation(true);
 
       for (const productId of selectedProducts) {
-        const product = products.find(p => p.id === productId);
+        const product = products.find((p) => p.id === productId);
         const productRef = doc(db, "products", productId);
         await updateDoc(productRef, {
           stock: Number(product.stock || 0) + Number(bulkQuantity),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
       }
 
-      toast.success(`Added ${bulkQuantity} stock to ${selectedProducts.length} products!`);
+      toast.success(
+        `Added ${bulkQuantity} stock to ${selectedProducts.length} products!`,
+      );
       setBulkModal({ open: false, type: null });
       setBulkQuantity("");
       setSelectedProducts([]);
@@ -332,10 +398,14 @@ const ProductManager = () => {
       const productRef = doc(db, "products", productId);
       await updateDoc(productRef, {
         showOnHome: !currentVisibility,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
-      toast.success(currentVisibility ? "Product hidden from homepage" : "Product shown on homepage");
+      toast.success(
+        currentVisibility
+          ? "Product hidden from homepage"
+          : "Product shown on homepage",
+      );
       fetchProducts();
     } catch (error) {
       console.error("Error updating visibility:", error);
@@ -365,8 +435,18 @@ const ProductManager = () => {
    * Export products to CSV
    */
   const exportToCSV = () => {
-    const headers = ["Name", "Brand", "Type", "Price", "Stock", "Sales", "Revenue", "Status", "Performance"];
-    const rows = filteredProducts.map(p => [
+    const headers = [
+      "Name",
+      "Brand",
+      "Type",
+      "Price",
+      "Stock",
+      "Sales",
+      "Revenue",
+      "Status",
+      "Performance",
+    ];
+    const rows = filteredProducts.map((p) => [
       p.name || "",
       p.brand || "",
       p.type || "",
@@ -375,19 +455,19 @@ const ProductManager = () => {
       p.salesData?.totalSales || 0,
       p.salesData?.totalRevenue || 0,
       p.stockStatus || "",
-      p.performance || ""
+      p.performance || "",
     ]);
 
     const csvContent = [
       headers.join(","),
-      ...rows.map(row => row.join(","))
+      ...rows.map((row) => row.join(",")),
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `products_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `products_${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
 
@@ -398,12 +478,24 @@ const ProductManager = () => {
    * Get performance badge
    */
   const getPerformanceBadge = (product) => {
-    if (product.performance === 'good') {
-      return <Badge variant="success" icon={<TrendingUp className="w-3 h-3" />}>High Sales</Badge>;
-    } else if (product.performance === 'average') {
-      return <Badge variant="warning" icon={<BarChart2 className="w-3 h-3" />}>Average</Badge>;
+    if (product.performance === "good") {
+      return (
+        <Badge variant="success" icon={<TrendingUp className="w-3 h-3" />}>
+          High Sales
+        </Badge>
+      );
+    } else if (product.performance === "average") {
+      return (
+        <Badge variant="warning" icon={<BarChart2 className="w-3 h-3" />}>
+          Average
+        </Badge>
+      );
     } else {
-      return <Badge variant="danger" icon={<TrendingDown className="w-3 h-3" />}>Low Sales</Badge>;
+      return (
+        <Badge variant="danger" icon={<TrendingDown className="w-3 h-3" />}>
+          Low Sales
+        </Badge>
+      );
     }
   };
 
@@ -411,10 +503,18 @@ const ProductManager = () => {
    * Get stock badge
    */
   const getStockBadge = (product) => {
-    if (product.stockStatus === 'outofstock') {
-      return <Badge variant="danger" dot pulse>Out of Stock</Badge>;
-    } else if (product.stockStatus === 'lowstock') {
-      return <Badge variant="warning" dot pulse>Low Stock</Badge>;
+    if (product.stockStatus === "outofstock") {
+      return (
+        <Badge variant="danger" dot pulse>
+          Out of Stock
+        </Badge>
+      );
+    } else if (product.stockStatus === "lowstock") {
+      return (
+        <Badge variant="warning" dot pulse>
+          Low Stock
+        </Badge>
+      );
     } else {
       return <Badge variant="success">In Stock</Badge>;
     }
@@ -443,7 +543,7 @@ const ProductManager = () => {
           <Alert
             variant="danger"
             title="Out of Stock Alert!"
-            message={`${stats.outOfStock} product${stats.outOfStock > 1 ? 's are' : ' is'} out of stock. Please restock immediately!`}
+            message={`${stats.outOfStock} product${stats.outOfStock > 1 ? "s are" : " is"} out of stock. Please restock immediately!`}
           />
         </motion.div>
       )}
@@ -456,7 +556,7 @@ const ProductManager = () => {
           <Alert
             variant="warning"
             title="Low Stock Warning"
-            message={`${stats.lowStock} product${stats.lowStock > 1 ? 's have' : ' has'} low stock (< 10 units). Consider restocking soon.`}
+            message={`${stats.lowStock} product${stats.lowStock > 1 ? "s have" : " has"} low stock (< 10 units). Consider restocking soon.`}
           />
         </motion.div>
       )}
@@ -471,8 +571,12 @@ const ProductManager = () => {
           <Card gradient>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Total Products</p>
-                <h3 className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</h3>
+                <p className="text-gray-600 text-sm font-medium">
+                  Total Products
+                </p>
+                <h3 className="text-2xl font-bold text-gray-900 mt-1">
+                  {stats.total}
+                </h3>
               </div>
               <div className="bg-blue-100 p-3 rounded-xl">
                 <Package className="w-5 h-5 text-blue-600" />
@@ -490,7 +594,9 @@ const ProductManager = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">In Stock</p>
-                <h3 className="text-2xl font-bold text-green-600 mt-1">{stats.inStock}</h3>
+                <h3 className="text-2xl font-bold text-green-600 mt-1">
+                  {stats.inStock}
+                </h3>
               </div>
               <div className="bg-green-100 p-3 rounded-xl">
                 <Check className="w-5 h-5 text-green-600" />
@@ -508,7 +614,9 @@ const ProductManager = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Low Stock</p>
-                <h3 className="text-2xl font-bold text-yellow-600 mt-1">{stats.lowStock}</h3>
+                <h3 className="text-2xl font-bold text-yellow-600 mt-1">
+                  {stats.lowStock}
+                </h3>
               </div>
               <div className="bg-yellow-100 p-3 rounded-xl">
                 <AlertTriangle className="w-5 h-5 text-yellow-600" />
@@ -525,8 +633,12 @@ const ProductManager = () => {
           <Card gradient>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Out of Stock</p>
-                <h3 className="text-2xl font-bold text-red-600 mt-1">{stats.outOfStock}</h3>
+                <p className="text-gray-600 text-sm font-medium">
+                  Out of Stock
+                </p>
+                <h3 className="text-2xl font-bold text-red-600 mt-1">
+                  {stats.outOfStock}
+                </h3>
               </div>
               <div className="bg-red-100 p-3 rounded-xl">
                 <X className="w-5 h-5 text-red-600" />
@@ -544,10 +656,12 @@ const ProductManager = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Value</p>
-                <h3 className="text-2xl font-bold text-purple-600 mt-1">{formatCurrency(stats.totalValue)}</h3>
+                <h3 className="text-2xl font-bold text-purple-600 mt-1">
+                  {formatCurrency(stats.totalValue)}
+                </h3>
               </div>
               <div className="bg-purple-100 p-3 rounded-xl">
-                <DollarSign className="w-5 h-5 text-purple-600" />
+                <Tag className="w-5 h-5 text-purple-600" />
               </div>
             </div>
           </Card>
@@ -581,10 +695,18 @@ const ProductManager = () => {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                icon={viewMode === 'grid' ? <List className="w-4 h-4" /> : <Grid className="w-4 h-4" />}
+                onClick={() =>
+                  setViewMode(viewMode === "grid" ? "list" : "grid")
+                }
+                icon={
+                  viewMode === "grid" ? (
+                    <List className="w-4 h-4" />
+                  ) : (
+                    <Grid className="w-4 h-4" />
+                  )
+                }
               >
-                {viewMode === 'grid' ? 'List' : 'Grid'}
+                {viewMode === "grid" ? "List" : "Grid"}
               </Button>
               <Button
                 variant="outline"
@@ -594,9 +716,7 @@ const ProductManager = () => {
                 Export
               </Button>
               <Link to="/products/add">
-                <Button icon={<Plus className="w-4 h-4" />}>
-                  Add Product
-                </Button>
+                <Button icon={<Plus className="w-4 h-4" />}>Add Product</Button>
               </Link>
             </div>
           </div>
@@ -606,12 +726,14 @@ const ProductManager = () => {
             {showFilters && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
+                animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t"
               >
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Sort By</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Sort By
+                  </label>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
@@ -626,7 +748,9 @@ const ProductManager = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Order</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Order
+                  </label>
                   <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}
@@ -638,7 +762,9 @@ const ProductManager = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Stock Status</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Stock Status
+                  </label>
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
@@ -652,7 +778,9 @@ const ProductManager = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Performance</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Performance
+                  </label>
                   <select
                     value={filterPerformance}
                     onChange={(e) => setFilterPerformance(e.target.value)}
@@ -676,12 +804,13 @@ const ProductManager = () => {
               className="flex flex-wrap gap-2 pt-4 border-t"
             >
               <Badge variant="info" size="lg">
-                {selectedProducts.length} product{selectedProducts.length > 1 ? 's' : ''} selected
+                {selectedProducts.length} product
+                {selectedProducts.length > 1 ? "s" : ""} selected
               </Badge>
               <Button
                 size="sm"
                 variant="success"
-                onClick={() => setBulkModal({ open: true, type: 'restock' })}
+                onClick={() => setBulkModal({ open: true, type: "restock" })}
                 icon={<RefreshCw className="w-4 h-4" />}
               >
                 Bulk Restock
@@ -689,7 +818,7 @@ const ProductManager = () => {
               <Button
                 size="sm"
                 variant="primary"
-                onClick={() => setBulkModal({ open: true, type: 'addstock' })}
+                onClick={() => setBulkModal({ open: true, type: "addstock" })}
                 icon={<Plus className="w-4 h-4" />}
               >
                 Add Stock
@@ -697,7 +826,7 @@ const ProductManager = () => {
               <Button
                 size="sm"
                 variant="danger"
-                onClick={() => setBulkModal({ open: true, type: 'delete' })}
+                onClick={() => setBulkModal({ open: true, type: "delete" })}
                 icon={<Trash2 className="w-4 h-4" />}
               >
                 Delete Selected
@@ -715,7 +844,7 @@ const ProductManager = () => {
       </Card>
 
       {/* Products Display */}
-      {viewMode === 'grid' ? (
+      {viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product, index) => (
             <motion.div
@@ -739,11 +868,15 @@ const ProductManager = () => {
                 {/* Product Image */}
                 <div className="relative h-48 overflow-hidden rounded-t-xl">
                   <img
-                    src={product.image || 'https://via.placeholder.com/300x200?text=No+Image'}
+                    src={
+                      product.image ||
+                      "https://via.placeholder.com/300x200?text=No+Image"
+                    }
                     alt={product.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
+                      e.target.src =
+                        "https://via.placeholder.com/300x200?text=No+Image";
                     }}
                   />
 
@@ -756,14 +889,16 @@ const ProductManager = () => {
                   {/* Visibility Toggle */}
                   <div className="absolute bottom-2 right-2">
                     <button
-                      onClick={() => toggleProductVisibility(product.id, product.isVisible)}
+                      onClick={() =>
+                        toggleProductVisibility(product.id, product.isVisible)
+                      }
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${
                         product.isVisible
-                          ? 'bg-green-500 text-white'
-                          : 'bg-gray-500 text-white'
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-500 text-white"
                       }`}
                     >
-                      {product.isVisible ? 'Visible' : 'Hidden'}
+                      {product.isVisible ? "Visible" : "Hidden"}
                     </button>
                   </div>
                 </div>
@@ -771,29 +906,42 @@ const ProductManager = () => {
                 {/* Product Info */}
                 <div className="p-4 space-y-3">
                   <div>
-                    <h3 className="font-bold text-gray-900 truncate" title={product.name}>
+                    <h3
+                      className="font-bold text-gray-900 truncate"
+                      title={product.name}
+                    >
                       {product.name}
                     </h3>
-                    <p className="text-sm text-gray-500 truncate">{product.brand} • {product.type}</p>
+                    <p className="text-sm text-gray-500 truncate">
+                      {product.brand} • {product.type}
+                    </p>
                   </div>
 
                   {/* Metrics Grid */}
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div className="bg-blue-50 p-2 rounded">
                       <p className="text-xs text-gray-600">Price</p>
-                      <p className="font-bold text-blue-600">{formatCurrency(product.price)}</p>
+                      <p className="font-bold text-blue-600">
+                        {formatCurrency(product.price)}
+                      </p>
                     </div>
                     <div className="bg-purple-50 p-2 rounded">
                       <p className="text-xs text-gray-600">Stock</p>
-                      <p className="font-bold text-purple-600">{product.stock || 0}</p>
+                      <p className="font-bold text-purple-600">
+                        {product.stock || 0}
+                      </p>
                     </div>
                     <div className="bg-green-50 p-2 rounded">
                       <p className="text-xs text-gray-600">Sales</p>
-                      <p className="font-bold text-green-600">{product.salesData?.totalSales || 0}</p>
+                      <p className="font-bold text-green-600">
+                        {product.salesData?.totalSales || 0}
+                      </p>
                     </div>
                     <div className="bg-orange-50 p-2 rounded">
                       <p className="text-xs text-gray-600">Revenue</p>
-                      <p className="font-bold text-orange-600">{formatCurrency(product.salesData?.totalRevenue || 0)}</p>
+                      <p className="font-bold text-orange-600">
+                        {formatCurrency(product.salesData?.totalRevenue || 0)}
+                      </p>
                     </div>
                   </div>
 
@@ -803,12 +951,17 @@ const ProductManager = () => {
                       size="sm"
                       variant="outline"
                       fullWidth
-                      onClick={() => setViewProductModal({ open: true, product })}
+                      onClick={() =>
+                        setViewProductModal({ open: true, product })
+                      }
                       icon={<Eye className="w-4 h-4" />}
                     >
                       View
                     </Button>
-                    <Link to={`/products/edit/${product.id}`} className="flex-1">
+                    <Link
+                      to={`/products/edit/${product.id}`}
+                      className="flex-1"
+                    >
                       <Button
                         size="sm"
                         variant="primary"
@@ -840,20 +993,41 @@ const ProductManager = () => {
                   <th className="px-6 py-3 text-left">
                     <input
                       type="checkbox"
-                      checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                      checked={
+                        selectedProducts.length === filteredProducts.length &&
+                        filteredProducts.length > 0
+                      }
                       onChange={toggleSelectAll}
                       className="w-4 h-4 cursor-pointer"
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sales</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Revenue</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Performance</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Visibility</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Product
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Stock
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Sales
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Revenue
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Performance
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Visibility
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -876,41 +1050,61 @@ const ProductManager = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <img
-                          src={product.image || 'https://via.placeholder.com/50'}
+                          src={
+                            product.image || "https://via.placeholder.com/50"
+                          }
                           alt={product.name}
                           className="w-12 h-12 rounded object-cover"
                           onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/50';
+                            e.target.src = "https://via.placeholder.com/50";
                           }}
                         />
                         <div>
-                          <p className="font-semibold text-gray-900">{product.name}</p>
-                          <p className="text-sm text-gray-500">{product.brand} • {product.type}</p>
+                          <p className="font-semibold text-gray-900">
+                            {product.name}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {product.brand} • {product.type}
+                          </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-semibold">{formatCurrency(product.price)}</td>
-                    <td className="px-6 py-4 font-semibold">{product.stock || 0}</td>
-                    <td className="px-6 py-4">{product.salesData?.totalSales || 0}</td>
-                    <td className="px-6 py-4">{formatCurrency(product.salesData?.totalRevenue || 0)}</td>
+                    <td className="px-6 py-4 font-semibold">
+                      {formatCurrency(product.price)}
+                    </td>
+                    <td className="px-6 py-4 font-semibold">
+                      {product.stock || 0}
+                    </td>
+                    <td className="px-6 py-4">
+                      {product.salesData?.totalSales || 0}
+                    </td>
+                    <td className="px-6 py-4">
+                      {formatCurrency(product.salesData?.totalRevenue || 0)}
+                    </td>
                     <td className="px-6 py-4">{getStockBadge(product)}</td>
-                    <td className="px-6 py-4">{getPerformanceBadge(product)}</td>
+                    <td className="px-6 py-4">
+                      {getPerformanceBadge(product)}
+                    </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => toggleProductVisibility(product.id, product.isVisible)}
+                        onClick={() =>
+                          toggleProductVisibility(product.id, product.isVisible)
+                        }
                         className={`px-3 py-1 rounded-full text-xs font-semibold ${
                           product.isVisible
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-700'
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-700"
                         }`}
                       >
-                        {product.isVisible ? 'Visible' : 'Hidden'}
+                        {product.isVisible ? "Visible" : "Hidden"}
                       </button>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex gap-2">
                         <button
-                          onClick={() => setViewProductModal({ open: true, product })}
+                          onClick={() =>
+                            setViewProductModal({ open: true, product })
+                          }
                           className="text-blue-600 hover:text-blue-800"
                         >
                           <Eye className="w-5 h-5" />
@@ -948,18 +1142,20 @@ const ProductManager = () => {
         isOpen={bulkModal.open}
         onClose={() => setBulkModal({ open: false, type: null })}
         title={
-          bulkModal.type === 'restock' ? 'Bulk Restock' :
-          bulkModal.type === 'addstock' ? 'Bulk Add Stock' :
-          'Bulk Delete'
+          bulkModal.type === "restock"
+            ? "Bulk Restock"
+            : bulkModal.type === "addstock"
+              ? "Bulk Add Stock"
+              : "Bulk Delete"
         }
         size="md"
       >
-        {bulkModal.type === 'delete' ? (
+        {bulkModal.type === "delete" ? (
           <div className="space-y-4">
             <Alert
               variant="danger"
               title="Warning"
-              message={`Are you sure you want to delete ${selectedProducts.length} product${selectedProducts.length > 1 ? 's' : ''}? This action cannot be undone.`}
+              message={`Are you sure you want to delete ${selectedProducts.length} product${selectedProducts.length > 1 ? "s" : ""}? This action cannot be undone.`}
             />
             <div className="flex gap-3 justify-end">
               <Button
@@ -974,17 +1170,16 @@ const ProductManager = () => {
                 onClick={handleBulkDelete}
                 icon={<Trash2 className="w-4 h-4" />}
               >
-                {performingBulkOperation ? 'Deleting...' : 'Delete All'}
+                {performingBulkOperation ? "Deleting..." : "Delete All"}
               </Button>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             <p className="text-gray-600">
-              {bulkModal.type === 'restock'
-                ? `Set stock quantity for ${selectedProducts.length} selected product${selectedProducts.length > 1 ? 's' : ''}`
-                : `Add stock to ${selectedProducts.length} selected product${selectedProducts.length > 1 ? 's' : ''}`
-              }
+              {bulkModal.type === "restock"
+                ? `Set stock quantity for ${selectedProducts.length} selected product${selectedProducts.length > 1 ? "s" : ""}`
+                : `Add stock to ${selectedProducts.length} selected product${selectedProducts.length > 1 ? "s" : ""}`}
             </p>
             <Input
               label="Quantity"
@@ -1004,10 +1199,24 @@ const ProductManager = () => {
               <Button
                 variant="success"
                 loading={performingBulkOperation}
-                onClick={bulkModal.type === 'restock' ? handleBulkRestock : handleBulkAddStock}
-                icon={bulkModal.type === 'restock' ? <RefreshCw className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                onClick={
+                  bulkModal.type === "restock"
+                    ? handleBulkRestock
+                    : handleBulkAddStock
+                }
+                icon={
+                  bulkModal.type === "restock" ? (
+                    <RefreshCw className="w-4 h-4" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )
+                }
               >
-                {performingBulkOperation ? 'Processing...' : bulkModal.type === 'restock' ? 'Restock' : 'Add Stock'}
+                {performingBulkOperation
+                  ? "Processing..."
+                  : bulkModal.type === "restock"
+                    ? "Restock"
+                    : "Add Stock"}
               </Button>
             </div>
           </div>
@@ -1025,7 +1234,11 @@ const ProductManager = () => {
           <div className="space-y-6">
             {/* Product Images */}
             <div className="grid grid-cols-3 gap-4">
-              {[viewProductModal.product.image, viewProductModal.product.image2, viewProductModal.product.image3]
+              {[
+                viewProductModal.product.image,
+                viewProductModal.product.image2,
+                viewProductModal.product.image3,
+              ]
                 .filter(Boolean)
                 .map((img, idx) => (
                   <img
@@ -1034,7 +1247,7 @@ const ProductManager = () => {
                     alt={`Product ${idx + 1}`}
                     className="w-full h-32 object-cover rounded-lg"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/200';
+                      e.target.src = "https://via.placeholder.com/200";
                     }}
                   />
                 ))}
@@ -1043,36 +1256,68 @@ const ProductManager = () => {
             {/* Product Info Grid */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-semibold text-gray-600">Name</label>
+                <label className="text-sm font-semibold text-gray-600">
+                  Name
+                </label>
                 <p className="text-gray-900">{viewProductModal.product.name}</p>
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-600">Brand</label>
-                <p className="text-gray-900">{viewProductModal.product.brand || 'N/A'}</p>
+                <label className="text-sm font-semibold text-gray-600">
+                  Brand
+                </label>
+                <p className="text-gray-900">
+                  {viewProductModal.product.brand || "N/A"}
+                </p>
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-600">Category</label>
-                <p className="text-gray-900">{viewProductModal.product.type || 'N/A'}</p>
+                <label className="text-sm font-semibold text-gray-600">
+                  Category
+                </label>
+                <p className="text-gray-900">
+                  {viewProductModal.product.type || "N/A"}
+                </p>
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-600">Price</label>
-                <p className="text-gray-900">{formatCurrency(viewProductModal.product.price)}</p>
+                <label className="text-sm font-semibold text-gray-600">
+                  Price
+                </label>
+                <p className="text-gray-900">
+                  {formatCurrency(viewProductModal.product.price)}
+                </p>
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-600">Stock</label>
-                <p className="text-gray-900">{viewProductModal.product.stock || 0}</p>
+                <label className="text-sm font-semibold text-gray-600">
+                  Stock
+                </label>
+                <p className="text-gray-900">
+                  {viewProductModal.product.stock || 0}
+                </p>
               </div>
               <div>
-                <label className="text-sm font-semibold text-gray-600">Total Sales</label>
-                <p className="text-gray-900">{viewProductModal.product.salesData?.totalSales || 0} units</p>
+                <label className="text-sm font-semibold text-gray-600">
+                  Total Sales
+                </label>
+                <p className="text-gray-900">
+                  {viewProductModal.product.salesData?.totalSales || 0} units
+                </p>
               </div>
               <div className="col-span-2">
-                <label className="text-sm font-semibold text-gray-600">Total Revenue</label>
-                <p className="text-gray-900">{formatCurrency(viewProductModal.product.salesData?.totalRevenue || 0)}</p>
+                <label className="text-sm font-semibold text-gray-600">
+                  Total Revenue
+                </label>
+                <p className="text-gray-900">
+                  {formatCurrency(
+                    viewProductModal.product.salesData?.totalRevenue || 0,
+                  )}
+                </p>
               </div>
               <div className="col-span-2">
-                <label className="text-sm font-semibold text-gray-600">Description</label>
-                <p className="text-gray-900">{viewProductModal.product.description || 'No description'}</p>
+                <label className="text-sm font-semibold text-gray-600">
+                  Description
+                </label>
+                <p className="text-gray-900">
+                  {viewProductModal.product.description || "No description"}
+                </p>
               </div>
             </div>
 
@@ -1080,24 +1325,48 @@ const ProductManager = () => {
             <div className="flex gap-2">
               {getStockBadge(viewProductModal.product)}
               {getPerformanceBadge(viewProductModal.product)}
-              <Badge variant={viewProductModal.product.isVisible ? 'success' : 'default'}>
-                {viewProductModal.product.isVisible ? 'Visible on Homepage' : 'Hidden from Homepage'}
+              <Badge
+                variant={
+                  viewProductModal.product.isVisible ? "success" : "default"
+                }
+              >
+                {viewProductModal.product.isVisible
+                  ? "Visible on Homepage"
+                  : "Hidden from Homepage"}
               </Badge>
             </div>
 
             {/* Actions */}
             <div className="flex gap-3">
-              <Link to={`/products/edit/${viewProductModal.product.id}`} className="flex-1">
-                <Button fullWidth variant="primary" icon={<Edit className="w-4 h-4" />}>
+              <Link
+                to={`/products/edit/${viewProductModal.product.id}`}
+                className="flex-1"
+              >
+                <Button
+                  fullWidth
+                  variant="primary"
+                  icon={<Edit className="w-4 h-4" />}
+                >
                   Edit Product
                 </Button>
               </Link>
               <Button
                 variant="outline"
-                onClick={() => toggleProductVisibility(viewProductModal.product.id, viewProductModal.product.isVisible)}
-                icon={viewProductModal.product.isVisible ? <Archive className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                onClick={() =>
+                  toggleProductVisibility(
+                    viewProductModal.product.id,
+                    viewProductModal.product.isVisible,
+                  )
+                }
+                icon={
+                  viewProductModal.product.isVisible ? (
+                    <Archive className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )
+                }
               >
-                {viewProductModal.product.isVisible ? 'Hide' : 'Show'}
+                {viewProductModal.product.isVisible ? "Hide" : "Show"}
               </Button>
             </div>
           </div>

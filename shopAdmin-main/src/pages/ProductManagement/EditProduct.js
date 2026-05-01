@@ -4,23 +4,58 @@ import { db } from "../../firebase";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  Package, DollarSign, Image as ImageIcon, Tag, Info, Check,
-  X, Plus, Trash2, Globe, Shield, Save
+  Package,
+  Image as ImageIcon,
+  Tag,
+  Info,
+  Check,
+  X,
+  Plus,
+  Trash2,
+  Globe,
+  Shield,
+  Save,
 } from "react-feather";
-import { Button, Card, Input, Alert, Badge, LoadingSpinner } from "../../components/ui";
+import {
+  Button,
+  Card,
+  Input,
+  Alert,
+  Badge,
+  LoadingSpinner,
+} from "../../components/ui";
 import { toast } from "react-toastify";
 
 const productTypes = [
-  'Notebooks and Journals', 'Pens and Pencils', 'Paper and Notepads',
-  'Planners and Calendars', 'Office Supplies', 'Art Supplies',
-  'Desk Accessories', 'Cards and Envelopes', 'Writing Accessories',
-  'Gift Wrap and Packaging',
+  "Notebooks and Journals",
+  "Pens and Pencils",
+  "Paper and Notepads",
+  "Planners and Calendars",
+  "Office Supplies",
+  "Art Supplies",
+  "Desk Accessories",
+  "Cards and Envelopes",
+  "Writing Accessories",
+  "Gift Wrap and Packaging",
 ];
 
 const brands = [
-  'Camel', 'Faber-Castell', 'Staedtler', 'Doms', 'Camlin', 'Luxor',
-  'Monami', 'Schneider', 'Pentel', 'Pilot', 'Kokuyo', 'Nataraj',
-  'OHPen', 'Bic', 'Zebra', 'Stabilo',
+  "Camel",
+  "Faber-Castell",
+  "Staedtler",
+  "Doms",
+  "Camlin",
+  "Luxor",
+  "Monami",
+  "Schneider",
+  "Pentel",
+  "Pilot",
+  "Kokuyo",
+  "Nataraj",
+  "OHPen",
+  "Bic",
+  "Zebra",
+  "Stabilo",
 ];
 
 /**
@@ -29,7 +64,7 @@ const brands = [
 const EditProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('basic');
+  const [activeTab, setActiveTab] = useState("basic");
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState(null);
   const [tagInput, setTagInput] = useState("");
@@ -39,11 +74,11 @@ const EditProduct = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const tabs = [
-    { id: 'basic', label: 'Basic Info', icon: Package },
-    { id: 'pricing', label: 'Pricing', icon: DollarSign },
-    { id: 'images', label: 'Images', icon: ImageIcon },
-    { id: 'details', label: 'Details', icon: Info },
-    { id: 'warranty', label: 'Warranty', icon: Shield }
+    { id: "basic", label: "Basic Info", icon: Package },
+    { id: "pricing", label: "Pricing", icon: Tag },
+    { id: "images", label: "Images", icon: ImageIcon },
+    { id: "details", label: "Details", icon: Info },
+    { id: "warranty", label: "Warranty", icon: Shield },
   ];
 
   useEffect(() => {
@@ -67,10 +102,22 @@ const EditProduct = () => {
           features: productData.features || [],
           specifications: productData.specifications || [],
           origin: productData.origin || "",
-          warranty: productData.warranty || { available: false, period: "", details: "" },
-          guarantee: productData.guarantee || { available: false, period: "", details: "" },
+          warranty: productData.warranty || {
+            available: false,
+            period: "",
+            details: "",
+          },
+          guarantee: productData.guarantee || {
+            available: false,
+            period: "",
+            details: "",
+          },
           additionalInfo: productData.additionalInfo || "",
-          importDetails: productData.importDetails || { isImported: false, country: "", deliveryNote: "" },
+          importDetails: productData.importDetails || {
+            isImported: false,
+            country: "",
+            deliveryNote: "",
+          },
         });
       } else {
         toast.error("Product not found");
@@ -100,7 +147,7 @@ const EditProduct = () => {
         mrp: Number(product.mrp || product.price),
         price: Number(product.sellingPrice || product.price),
         stock: Number(product.stock),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       };
 
       await updateDoc(productRef, updateData);
@@ -125,25 +172,37 @@ const EditProduct = () => {
   };
 
   const removeTag = (tagToRemove) => {
-    setProduct({ ...product, tags: product.tags.filter(tag => tag !== tagToRemove) });
+    setProduct({
+      ...product,
+      tags: product.tags.filter((tag) => tag !== tagToRemove),
+    });
   };
 
   const addFeature = () => {
     if (featureInput.trim()) {
-      setProduct({ ...product, features: [...product.features, featureInput.trim()] });
+      setProduct({
+        ...product,
+        features: [...product.features, featureInput.trim()],
+      });
       setFeatureInput("");
     }
   };
 
   const removeFeature = (index) => {
-    setProduct({ ...product, features: product.features.filter((_, i) => i !== index) });
+    setProduct({
+      ...product,
+      features: product.features.filter((_, i) => i !== index),
+    });
   };
 
   const addSpecification = () => {
     if (specKey.trim() && specValue.trim()) {
       setProduct({
         ...product,
-        specifications: [...product.specifications, { key: specKey.trim(), value: specValue.trim() }]
+        specifications: [
+          ...product.specifications,
+          { key: specKey.trim(), value: specValue.trim() },
+        ],
       });
       setSpecKey("");
       setSpecValue("");
@@ -151,7 +210,10 @@ const EditProduct = () => {
   };
 
   const removeSpecification = (index) => {
-    setProduct({ ...product, specifications: product.specifications.filter((_, i) => i !== index) });
+    setProduct({
+      ...product,
+      specifications: product.specifications.filter((_, i) => i !== index),
+    });
   };
 
   const discountPercentage = () => {
@@ -174,7 +236,11 @@ const EditProduct = () => {
 
   if (!product) {
     return (
-      <Alert variant="danger" title="Product Not Found" message="The product you're looking for doesn't exist." />
+      <Alert
+        variant="danger"
+        title="Product Not Found"
+        message="The product you're looking for doesn't exist."
+      />
     );
   }
 
@@ -188,7 +254,10 @@ const EditProduct = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Edit Product</h1>
-          <p className="text-gray-600 mt-1">Update product information for: <span className="font-semibold">{product.name}</span></p>
+          <p className="text-gray-600 mt-1">
+            Update product information for:{" "}
+            <span className="font-semibold">{product.name}</span>
+          </p>
         </div>
         <Button
           variant="ghost"
@@ -212,8 +281,8 @@ const EditProduct = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -225,46 +294,63 @@ const EditProduct = () => {
       </Card>
 
       {/* Basic Info Tab */}
-      {activeTab === 'basic' && (
+      {activeTab === "basic" && (
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-6"
         >
-          <Card title="Basic Information" icon={<Package className="w-5 h-5 text-blue-600" />}>
+          <Card
+            title="Basic Information"
+            icon={<Package className="w-5 h-5 text-blue-600" />}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
                 label="Product Name"
                 placeholder="Enter product name"
                 value={product.name}
-                onChange={(e) => setProduct({ ...product, name: e.target.value })}
+                onChange={(e) =>
+                  setProduct({ ...product, name: e.target.value })
+                }
                 required
               />
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Brand</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Brand
+                </label>
                 <select
                   value={product.brand}
-                  onChange={(e) => setProduct({ ...product, brand: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product, brand: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Brand</option>
                   {brands.map((brand) => (
-                    <option key={brand} value={brand}>{brand}</option>
+                    <option key={brand} value={brand}>
+                      {brand}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Category
+                </label>
                 <select
                   value={product.type}
-                  onChange={(e) => setProduct({ ...product, type: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product, type: e.target.value })
+                  }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Category</option>
                   {productTypes.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -274,7 +360,9 @@ const EditProduct = () => {
                 type="number"
                 placeholder="Available stock"
                 value={product.stock}
-                onChange={(e) => setProduct({ ...product, stock: e.target.value })}
+                onChange={(e) =>
+                  setProduct({ ...product, stock: e.target.value })
+                }
                 required
               />
 
@@ -284,7 +372,9 @@ const EditProduct = () => {
                 </label>
                 <textarea
                   value={product.description}
-                  onChange={(e) => setProduct({ ...product, description: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product, description: e.target.value })
+                  }
                   rows="4"
                   placeholder="Detailed description of the product..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -300,7 +390,11 @@ const EditProduct = () => {
           />
 
           <div className="flex justify-end">
-            <Button onClick={() => setActiveTab('pricing')} icon={<DollarSign className="w-4 h-4" />} iconPosition="right">
+            <Button
+              onClick={() => setActiveTab("pricing")}
+              icon={<Tag className="w-4 h-4" />}
+              iconPosition="right"
+            >
               Next: Pricing
             </Button>
           </div>
@@ -308,34 +402,41 @@ const EditProduct = () => {
       )}
 
       {/* Pricing Tab */}
-      {activeTab === 'pricing' && (
+      {activeTab === "pricing" && (
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-6"
         >
-          <Card title="Pricing Information" icon={<DollarSign className="w-5 h-5 text-green-600" />}>
+          <Card
+            title="Pricing Information (M - Maloti)"
+            icon={<Tag className="w-5 h-5 text-green-600" />}
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Input
-                label="MRP (Maximum Retail Price)"
+                label="MRP (Maximum Retail Price) in Maloti"
                 type="number"
-                placeholder="₹ 0.00"
+                placeholder="M 0.00"
                 value={product.mrp}
-                onChange={(e) => setProduct({ ...product, mrp: e.target.value })}
-                icon={<DollarSign className="w-4 h-4" />}
+                onChange={(e) =>
+                  setProduct({ ...product, mrp: e.target.value })
+                }
+                icon={<Tag className="w-4 h-4" />}
               />
 
               <Input
-                label="Selling Price"
+                label="Selling Price (M)"
                 type="number"
-                placeholder="₹ 0.00"
+                placeholder="M 0.00"
                 value={product.sellingPrice}
-                onChange={(e) => setProduct({
-                  ...product,
-                  sellingPrice: e.target.value,
-                  price: e.target.value
-                })}
-                icon={<DollarSign className="w-4 h-4" />}
+                onChange={(e) =>
+                  setProduct({
+                    ...product,
+                    sellingPrice: e.target.value,
+                    price: e.target.value,
+                  })
+                }
+                icon={<Tag className="w-4 h-4" />}
                 required
               />
 
@@ -352,8 +453,14 @@ const EditProduct = () => {
           </Card>
 
           <div className="flex justify-between">
-            <Button onClick={() => setActiveTab('basic')} variant="outline">Back</Button>
-            <Button onClick={() => setActiveTab('images')} icon={<ImageIcon className="w-4 h-4" />} iconPosition="right">
+            <Button onClick={() => setActiveTab("basic")} variant="outline">
+              Back
+            </Button>
+            <Button
+              onClick={() => setActiveTab("images")}
+              icon={<ImageIcon className="w-4 h-4" />}
+              iconPosition="right"
+            >
               Next: Images
             </Button>
           </div>
@@ -361,25 +468,36 @@ const EditProduct = () => {
       )}
 
       {/* Images Tab */}
-      {activeTab === 'images' && (
+      {activeTab === "images" && (
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-6"
         >
-          <Card title="Product Images" icon={<ImageIcon className="w-5 h-5 text-pink-600" />}>
+          <Card
+            title="Product Images"
+            icon={<ImageIcon className="w-5 h-5 text-pink-600" />}
+          >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {['image', 'image2', 'image3'].map((imgKey, index) => (
+              {["image", "image2", "image3"].map((imgKey, index) => (
                 <div key={imgKey}>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    {index === 0 ? 'Primary Image' : index === 1 ? 'Secondary Image' : 'Tertiary Image'}
-                    {index === 0 && <span className="text-red-500 ml-1">*</span>}
+                    {index === 0
+                      ? "Primary Image"
+                      : index === 1
+                        ? "Secondary Image"
+                        : "Tertiary Image"}
+                    {index === 0 && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
                   </label>
                   <Input
                     type="url"
                     placeholder="Image URL"
                     value={product[imgKey] || ""}
-                    onChange={(e) => setProduct({ ...product, [imgKey]: e.target.value })}
+                    onChange={(e) =>
+                      setProduct({ ...product, [imgKey]: e.target.value })
+                    }
                     className="mb-0"
                   />
                   {product[imgKey] && (
@@ -393,11 +511,12 @@ const EditProduct = () => {
                         alt={`Preview ${index + 1}`}
                         className="w-full h-48 object-cover rounded-lg border-2 border-gray-200 group-hover:border-blue-500 transition-all duration-200"
                         onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/300x200?text=Invalid+Image';
+                          e.target.src =
+                            "https://via.placeholder.com/300x200?text=Invalid+Image";
                         }}
                       />
                       <button
-                        onClick={() => setProduct({ ...product, [imgKey]: '' })}
+                        onClick={() => setProduct({ ...product, [imgKey]: "" })}
                         className="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -410,8 +529,14 @@ const EditProduct = () => {
           </Card>
 
           <div className="flex justify-between">
-            <Button onClick={() => setActiveTab('pricing')} variant="outline">Back</Button>
-            <Button onClick={() => setActiveTab('details')} icon={<Info className="w-4 h-4" />} iconPosition="right">
+            <Button onClick={() => setActiveTab("pricing")} variant="outline">
+              Back
+            </Button>
+            <Button
+              onClick={() => setActiveTab("details")}
+              icon={<Info className="w-4 h-4" />}
+              iconPosition="right"
+            >
               Next: Details
             </Button>
           </div>
@@ -419,19 +544,25 @@ const EditProduct = () => {
       )}
 
       {/* Details Tab */}
-      {activeTab === 'details' && (
+      {activeTab === "details" && (
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-6"
         >
           {/* Tags */}
-          <Card title="Product Tags" icon={<Tag className="w-5 h-5 text-indigo-600" />}>
+          <Card
+            title="Product Tags"
+            icon={<Tag className="w-5 h-5 text-indigo-600" />}
+          >
             <div className="flex flex-wrap gap-2 mb-4">
               {product.tags.map((tag, index) => (
                 <Badge key={index} variant="info">
                   {tag}
-                  <button onClick={() => removeTag(tag)} className="ml-2 hover:text-red-500">
+                  <button
+                    onClick={() => removeTag(tag)}
+                    className="ml-2 hover:text-red-500"
+                  >
                     <X className="w-3 h-3" />
                   </button>
                 </Badge>
@@ -442,20 +573,33 @@ const EditProduct = () => {
                 placeholder="Add a tag"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                onKeyPress={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), addTag())
+                }
                 className="mb-0 flex-1"
               />
-              <Button onClick={addTag} icon={<Plus className="w-4 h-4" />}>Add</Button>
+              <Button onClick={addTag} icon={<Plus className="w-4 h-4" />}>
+                Add
+              </Button>
             </div>
           </Card>
 
           {/* Features */}
-          <Card title="Key Features" icon={<Check className="w-5 h-5 text-green-600" />}>
+          <Card
+            title="Key Features"
+            icon={<Check className="w-5 h-5 text-green-600" />}
+          >
             <div className="space-y-2 mb-4">
               {product.features.map((feature, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
                   <span className="text-gray-700">• {feature}</span>
-                  <button onClick={() => removeFeature(index)} className="text-red-500 hover:text-red-700">
+                  <button
+                    onClick={() => removeFeature(index)}
+                    className="text-red-500 hover:text-red-700"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -466,33 +610,63 @@ const EditProduct = () => {
                 placeholder="Add a feature"
                 value={featureInput}
                 onChange={(e) => setFeatureInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                onKeyPress={(e) =>
+                  e.key === "Enter" && (e.preventDefault(), addFeature())
+                }
                 className="mb-0 flex-1"
               />
-              <Button onClick={addFeature} icon={<Plus className="w-4 h-4" />}>Add</Button>
+              <Button onClick={addFeature} icon={<Plus className="w-4 h-4" />}>
+                Add
+              </Button>
             </div>
           </Card>
 
           {/* Specifications */}
-          <Card title="Specifications" icon={<Info className="w-5 h-5 text-blue-600" />}>
+          <Card
+            title="Specifications"
+            icon={<Info className="w-5 h-5 text-blue-600" />}
+          >
             <div className="space-y-2 mb-4">
               {product.specifications.map((spec, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                >
                   <div className="flex-1 grid grid-cols-2 gap-4">
-                    <span className="font-semibold text-gray-700">{spec.key}:</span>
+                    <span className="font-semibold text-gray-700">
+                      {spec.key}:
+                    </span>
                     <span className="text-gray-600">{spec.value}</span>
                   </div>
-                  <button onClick={() => removeSpecification(index)} className="text-red-500 hover:text-red-700 ml-4">
+                  <button
+                    onClick={() => removeSpecification(index)}
+                    className="text-red-500 hover:text-red-700 ml-4"
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               ))}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <Input placeholder="Specification name" value={specKey} onChange={(e) => setSpecKey(e.target.value)} className="mb-0" />
+              <Input
+                placeholder="Specification name"
+                value={specKey}
+                onChange={(e) => setSpecKey(e.target.value)}
+                className="mb-0"
+              />
               <div className="flex gap-2">
-                <Input placeholder="Value" value={specValue} onChange={(e) => setSpecValue(e.target.value)} className="mb-0 flex-1" />
-                <Button onClick={addSpecification} icon={<Plus className="w-4 h-4" />}>Add</Button>
+                <Input
+                  placeholder="Value"
+                  value={specValue}
+                  onChange={(e) => setSpecValue(e.target.value)}
+                  className="mb-0 flex-1"
+                />
+                <Button
+                  onClick={addSpecification}
+                  icon={<Plus className="w-4 h-4" />}
+                >
+                  Add
+                </Button>
               </div>
             </div>
           </Card>
@@ -504,15 +678,21 @@ const EditProduct = () => {
                 label="Country of Origin"
                 placeholder="e.g., India, Japan, Germany"
                 value={product.origin}
-                onChange={(e) => setProduct({ ...product, origin: e.target.value })}
+                onChange={(e) =>
+                  setProduct({ ...product, origin: e.target.value })
+                }
                 className="mb-0"
               />
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Additional Notes</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Additional Notes
+                </label>
                 <textarea
                   value={product.additionalInfo}
-                  onChange={(e) => setProduct({ ...product, additionalInfo: e.target.value })}
+                  onChange={(e) =>
+                    setProduct({ ...product, additionalInfo: e.target.value })
+                  }
                   rows="3"
                   placeholder="Any additional information..."
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -524,10 +704,15 @@ const EditProduct = () => {
                   type="checkbox"
                   id="showOnHome"
                   checked={product.showOnHome || false}
-                  onChange={(e) => setProduct({ ...product, showOnHome: e.target.checked })}
+                  onChange={(e) =>
+                    setProduct({ ...product, showOnHome: e.target.checked })
+                  }
                   className="w-4 h-4"
                 />
-                <label htmlFor="showOnHome" className="text-gray-700 cursor-pointer">
+                <label
+                  htmlFor="showOnHome"
+                  className="text-gray-700 cursor-pointer"
+                >
                   Display this product on homepage
                 </label>
               </div>
@@ -535,8 +720,14 @@ const EditProduct = () => {
           </Card>
 
           <div className="flex justify-between">
-            <Button onClick={() => setActiveTab('images')} variant="outline">Back</Button>
-            <Button onClick={() => setActiveTab('warranty')} icon={<Shield className="w-4 h-4" />} iconPosition="right">
+            <Button onClick={() => setActiveTab("images")} variant="outline">
+              Back
+            </Button>
+            <Button
+              onClick={() => setActiveTab("warranty")}
+              icon={<Shield className="w-4 h-4" />}
+              iconPosition="right"
+            >
               Next: Warranty
             </Button>
           </div>
@@ -544,13 +735,16 @@ const EditProduct = () => {
       )}
 
       {/* Warranty Tab */}
-      {activeTab === 'warranty' && (
+      {activeTab === "warranty" && (
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           className="space-y-6"
         >
-          <Card title="Warranty & Guarantee" icon={<Shield className="w-5 h-5 text-yellow-600" />}>
+          <Card
+            title="Warranty & Guarantee"
+            icon={<Shield className="w-5 h-5 text-yellow-600" />}
+          >
             {/* Warranty */}
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-4">
@@ -558,13 +752,21 @@ const EditProduct = () => {
                   type="checkbox"
                   id="warranty"
                   checked={product.warranty.available}
-                  onChange={(e) => setProduct({
-                    ...product,
-                    warranty: { ...product.warranty, available: e.target.checked }
-                  })}
+                  onChange={(e) =>
+                    setProduct({
+                      ...product,
+                      warranty: {
+                        ...product.warranty,
+                        available: e.target.checked,
+                      },
+                    })
+                  }
                   className="w-4 h-4"
                 />
-                <label htmlFor="warranty" className="font-semibold text-gray-700 cursor-pointer">
+                <label
+                  htmlFor="warranty"
+                  className="font-semibold text-gray-700 cursor-pointer"
+                >
                   Product has warranty
                 </label>
               </div>
@@ -575,19 +777,31 @@ const EditProduct = () => {
                     label="Warranty Period"
                     placeholder="e.g., 1 year, 6 months"
                     value={product.warranty.period}
-                    onChange={(e) => setProduct({
-                      ...product,
-                      warranty: { ...product.warranty, period: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setProduct({
+                        ...product,
+                        warranty: {
+                          ...product.warranty,
+                          period: e.target.value,
+                        },
+                      })
+                    }
                   />
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Warranty Details</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Warranty Details
+                    </label>
                     <textarea
                       value={product.warranty.details}
-                      onChange={(e) => setProduct({
-                        ...product,
-                        warranty: { ...product.warranty, details: e.target.value }
-                      })}
+                      onChange={(e) =>
+                        setProduct({
+                          ...product,
+                          warranty: {
+                            ...product.warranty,
+                            details: e.target.value,
+                          },
+                        })
+                      }
                       rows="3"
                       placeholder="Describe what the warranty covers..."
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -604,13 +818,21 @@ const EditProduct = () => {
                   type="checkbox"
                   id="guarantee"
                   checked={product.guarantee.available}
-                  onChange={(e) => setProduct({
-                    ...product,
-                    guarantee: { ...product.guarantee, available: e.target.checked }
-                  })}
+                  onChange={(e) =>
+                    setProduct({
+                      ...product,
+                      guarantee: {
+                        ...product.guarantee,
+                        available: e.target.checked,
+                      },
+                    })
+                  }
                   className="w-4 h-4"
                 />
-                <label htmlFor="guarantee" className="font-semibold text-gray-700 cursor-pointer">
+                <label
+                  htmlFor="guarantee"
+                  className="font-semibold text-gray-700 cursor-pointer"
+                >
                   Product has guarantee
                 </label>
               </div>
@@ -621,19 +843,31 @@ const EditProduct = () => {
                     label="Guarantee Period"
                     placeholder="e.g., Lifetime, 3 years"
                     value={product.guarantee.period}
-                    onChange={(e) => setProduct({
-                      ...product,
-                      guarantee: { ...product.guarantee, period: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setProduct({
+                        ...product,
+                        guarantee: {
+                          ...product.guarantee,
+                          period: e.target.value,
+                        },
+                      })
+                    }
                   />
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Guarantee Details</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Guarantee Details
+                    </label>
                     <textarea
                       value={product.guarantee.details}
-                      onChange={(e) => setProduct({
-                        ...product,
-                        guarantee: { ...product.guarantee, details: e.target.value }
-                      })}
+                      onChange={(e) =>
+                        setProduct({
+                          ...product,
+                          guarantee: {
+                            ...product.guarantee,
+                            details: e.target.value,
+                          },
+                        })
+                      }
                       rows="3"
                       placeholder="Describe what the guarantee covers..."
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -645,19 +879,30 @@ const EditProduct = () => {
           </Card>
 
           {/* Import Details */}
-          <Card title="Import Information" icon={<Globe className="w-5 h-5 text-purple-600" />}>
+          <Card
+            title="Import Information"
+            icon={<Globe className="w-5 h-5 text-purple-600" />}
+          >
             <div className="flex items-center gap-2 mb-4">
               <input
                 type="checkbox"
                 id="imported"
                 checked={product.importDetails.isImported}
-                onChange={(e) => setProduct({
-                  ...product,
-                  importDetails: { ...product.importDetails, isImported: e.target.checked }
-                })}
+                onChange={(e) =>
+                  setProduct({
+                    ...product,
+                    importDetails: {
+                      ...product.importDetails,
+                      isImported: e.target.checked,
+                    },
+                  })
+                }
                 className="w-4 h-4"
               />
-              <label htmlFor="imported" className="font-semibold text-gray-700 cursor-pointer">
+              <label
+                htmlFor="imported"
+                className="font-semibold text-gray-700 cursor-pointer"
+              >
                 This is an imported product
               </label>
             </div>
@@ -668,19 +913,31 @@ const EditProduct = () => {
                   label="Imported From"
                   placeholder="e.g., Japan, USA"
                   value={product.importDetails.country}
-                  onChange={(e) => setProduct({
-                    ...product,
-                    importDetails: { ...product.importDetails, country: e.target.value }
-                  })}
+                  onChange={(e) =>
+                    setProduct({
+                      ...product,
+                      importDetails: {
+                        ...product.importDetails,
+                        country: e.target.value,
+                      },
+                    })
+                  }
                 />
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery Note</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Delivery Note
+                  </label>
                   <textarea
                     value={product.importDetails.deliveryNote}
-                    onChange={(e) => setProduct({
-                      ...product,
-                      importDetails: { ...product.importDetails, deliveryNote: e.target.value }
-                    })}
+                    onChange={(e) =>
+                      setProduct({
+                        ...product,
+                        importDetails: {
+                          ...product.importDetails,
+                          deliveryNote: e.target.value,
+                        },
+                      })
+                    }
                     rows="2"
                     placeholder="e.g., May take 3-4 weeks for delivery"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -691,7 +948,9 @@ const EditProduct = () => {
           </Card>
 
           <div className="flex justify-between">
-            <Button onClick={() => setActiveTab('details')} variant="outline">Back</Button>
+            <Button onClick={() => setActiveTab("details")} variant="outline">
+              Back
+            </Button>
             <Button
               onClick={handleUpdateProduct}
               variant="success"

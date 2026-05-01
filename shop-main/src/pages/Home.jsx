@@ -131,7 +131,7 @@ function Home() {
               <div>
                 <h3 className="font-semibold text-gray-900">Premium Quality</h3>
                 <p className="text-sm text-gray-600">
-                  Curated stationery collection
+                  Curated ICT product catalogue
                 </p>
               </div>
             </div>
@@ -273,8 +273,9 @@ function Home() {
               Discover Our Complete Collection
             </h2>
             <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              Explore hundreds of premium stationery items carefully curated for
-              professionals, students, and creatives.
+              Explore hundreds of premium computers, ICT products and web
+              hosting solutions carefully selected for professionals, students,
+              and businesses.
             </p>
             <Link
               to="/products"

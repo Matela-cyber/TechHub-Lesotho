@@ -1,5 +1,5 @@
 /**
- * Receipt PDF Styling for KamiKoto Stationery Shop
+ * Receipt PDF Styling for TechHub Lesotho
  * 
  * Enhanced styling for receipt PDFs with warm, elegant design
  * Includes print-specific styles for optimal PDF output
@@ -11,7 +11,7 @@
 /* Base Receipt Container */
 .receipt-container {
   /* Core container styles */
-  font-family: 'Helvetica', 'Arial', sans-serif;
+  font-family: "Helvetica", "Arial", sans-serif;
   max-width: 800px;
   margin: 0 auto;
   padding: 40px;
@@ -43,7 +43,7 @@
   font-size: 24px;
   font-weight: bold;
   margin-bottom: 5px;
-  color: #8B4513; /* Warm brown color matching theme-color from index.html */
+  color: #8b4513; /* Warm brown color matching theme-color from index.html */
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -86,14 +86,14 @@
   padding: 15px;
   background: #f9fafb;
   border-radius: 8px;
-  border-left: 4px solid #8B4513; /* Warm brown color for left border */
+  border-left: 4px solid #8b4513; /* Warm brown color for left border */
 }
 
 .customer-info h3 {
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 8px; /* Reduced margin for better spacing */
-  color: #8B4513; /* Warm brown color */
+  color: #8b4513; /* Warm brown color */
 }
 
 .customer-info p {
@@ -116,7 +116,7 @@
 }
 
 .items-table th {
-  background: #8B4513; /* Warm brown color for table header */
+  background: #8b4513; /* Warm brown color for table header */
   color: white;
   padding: 10px; /* Reduced padding for better fit */
   text-align: left;
@@ -178,7 +178,7 @@
   margin-top: 8px;
   padding-top: 8px;
   border-top: 2px solid #e5e7eb;
-  color: #8B4513; /* Warm brown color for total */
+  color: #8b4513; /* Warm brown color for total */
 }
 
 /* Payment Information */
@@ -194,7 +194,7 @@
   font-size: 16px;
   font-weight: bold;
   margin-bottom: 12px; /* Reduced margin for better spacing */
-  color: #8B4513; /* Warm brown color */
+  color: #8b4513; /* Warm brown color */
   border-bottom: 1px solid #e5e7eb;
   padding-bottom: 8px;
 }
@@ -246,7 +246,7 @@
   font-weight: bold;
   margin-bottom: 8px;
   font-size: 15px; /* Reduced font size for better fit */
-  color: #8B4513; /* Warm brown color */
+  color: #8b4513; /* Warm brown color */
 }
 
 /* Print Specific Styles - Crucial for PDF generation */
@@ -257,42 +257,42 @@
     padding: 0;
     max-width: 100%;
   }
-  
+
   /* Force background colors to print */
   .items-table th {
-    background-color: #8B4513 !important; /* Ensure color prints in PDF */
+    background-color: #8b4513 !important; /* Ensure color prints in PDF */
     color: white !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  
+
   /* Ensure brand colors print properly */
-  .receipt-info h2, 
+  .receipt-info h2,
   .store-info h1,
   .customer-info h3,
   .payment-info h3,
   .summary-row.total,
   .footer p:first-child,
   .thank-you-message h3 {
-    color: #8B4513 !important; /* Ensure color prints in PDF */
+    color: #8b4513 !important; /* Ensure color prints in PDF */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  
+
   /* Ensure border colors print properly */
   .customer-info {
-    border-left-color: #8B4513 !important; /* Ensure color prints in PDF */
+    border-left-color: #8b4513 !important; /* Ensure color prints in PDF */
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  
+
   /* Optimize page breaks - avoid breaking inside product rows */
   .items-table tr {
     page-break-inside: avoid;
   }
-  
+
   /* Ensure summary section stays together */
   .summary-section {
     page-break-inside: avoid;
   }
-} 
+}

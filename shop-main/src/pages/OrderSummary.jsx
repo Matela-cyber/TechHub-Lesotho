@@ -230,13 +230,10 @@ function OrderSummary() {
     fetchOrderDetails();
   }, [orderId, user]); // Dependencies: re-run if orderId or user changes
 
-  // Format price with Indian currency format
+  // Format price in Maloti (M)
   const formatPrice = (price) => {
-    return new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-      minimumFractionDigits: 2,
-    }).format(price);
+    const num = Number(price) || 0;
+    return `M${num.toLocaleString("en-LS", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   // Format date in readable format

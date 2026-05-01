@@ -443,7 +443,7 @@ function MyAccount() {
     const num = typeof price === "string" ? parseFloat(price) : price;
 
     // Handle NaN, just in case
-    if (isNaN(num)) return "₹0.00";
+    if (isNaN(num)) return "M0.00";
 
     // Extract integer and decimal parts
     const parts = num.toFixed(2).split(".");
