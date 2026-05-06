@@ -8,7 +8,6 @@ import {
   getDocs,
   orderBy,
   limit,
-  where,
   onSnapshot,
 } from "firebase/firestore";
 import { db } from "../firebase";
@@ -19,7 +18,6 @@ import {
   Users,
   ShoppingBag,
   Tag,
-  Image as ImageIcon,
   Bell,
   LogOut,
   TrendingUp,

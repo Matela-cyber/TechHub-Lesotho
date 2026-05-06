@@ -5,7 +5,6 @@ import { auth, db } from "../firebase/config";
 import { doc, getDoc } from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import {
-  CheckCircle,
   Package,
   Truck,
   CreditCard,

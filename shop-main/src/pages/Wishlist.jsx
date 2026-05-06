@@ -8,14 +8,7 @@ import {
   setError,
 } from "../redux/wishlistSlice";
 import { db } from "../firebase/config";
-// eslint-disable-next-line no-unused-vars
-import {
-  collection,
-  getDocs,
-  deleteDoc,
-  doc,
-  writeBatch,
-} from "firebase/firestore";
+import { doc, writeBatch } from "firebase/firestore";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ShoppingCart,
