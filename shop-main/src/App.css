@@ -1,9 +1,10 @@
 .Toastify__toast {
-  border-radius: 10px;
-  padding: 16px;
-  font-family: "Arial", sans-serif;
-  font-size: 14px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  font-size: 13px;
+  box-shadow: 0 18px 32px rgba(19, 32, 51, 0.12);
+  border: 1px solid rgba(31, 54, 88, 0.08);
 }
 
 .Toastify__toast-body {
@@ -37,7 +38,7 @@
 }
 
 .Toastify__toast-container {
-  margin-top: 80px;
+  margin-top: 72px;
 }
 
 .Toastify__toast-icon {

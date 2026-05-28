@@ -20,20 +20,20 @@ const Badge = ({
   className = "",
 }) => {
   const variantClasses = {
-    success: "bg-green-100 text-green-800 border-green-200",
-    danger: "bg-red-100 text-red-800 border-red-200",
-    warning: "bg-yellow-100 text-yellow-800 border-yellow-200",
-    info: "bg-blue-100 text-blue-800 border-blue-200",
-    default: "bg-gray-100 text-gray-800 border-gray-200",
-    purple: "bg-purple-100 text-purple-800 border-purple-200",
-    pink: "bg-pink-100 text-pink-800 border-pink-200",
-    indigo: "bg-indigo-100 text-indigo-800 border-indigo-200",
+    success: "bg-mint-50 text-mint-800 border-mint-200",
+    danger: "bg-red-50 text-red-700 border-red-200",
+    warning: "bg-amber-50 text-amber-700 border-amber-200",
+    info: "bg-admin-50 text-admin-700 border-admin-200",
+    default: "bg-slate-100 text-slate-700 border-slate-200",
+    purple: "bg-violet-50 text-violet-700 border-violet-200",
+    pink: "bg-rose-50 text-rose-700 border-rose-200",
+    indigo: "bg-indigo-50 text-indigo-700 border-indigo-200",
   };
 
   const sizeClasses = {
-    sm: "text-xs px-2 py-0.5",
-    md: "text-sm px-3 py-1",
-    lg: "text-base px-4 py-1.5",
+    sm: "text-[11px] px-2.5 py-1",
+    md: "text-xs px-3 py-1.5",
+    lg: "text-sm px-4 py-2",
   };
 
   const badgeContent = (

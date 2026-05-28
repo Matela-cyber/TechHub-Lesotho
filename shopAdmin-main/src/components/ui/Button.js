@@ -25,29 +25,29 @@ const Button = ({
   className = "",
 }) => {
   const baseClasses =
-    "font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2";
+    "font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 leading-none";
 
   const variantClasses = {
     primary:
-      "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 shadow-lg hover:shadow-xl",
+      "bg-admin-600 hover:bg-admin-700 text-white focus:ring-admin-500 shadow-panel",
     secondary:
-      "bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500 shadow-lg hover:shadow-xl",
+      "bg-admin-100 hover:bg-admin-200 text-admin-800 focus:ring-admin-400 border border-admin-200",
     success:
-      "bg-green-600 hover:bg-green-700 text-white focus:ring-green-500 shadow-lg hover:shadow-xl",
+      "bg-mint-600 hover:bg-mint-700 text-white focus:ring-mint-500 shadow-panel",
     danger:
-      "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg hover:shadow-xl",
+      "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-panel",
     warning:
-      "bg-yellow-500 hover:bg-yellow-600 text-white focus:ring-yellow-500 shadow-lg hover:shadow-xl",
+      "bg-amber-500 hover:bg-amber-600 text-white focus:ring-amber-500 shadow-panel",
     ghost:
-      "bg-transparent hover:bg-gray-100 text-gray-700 border-2 border-gray-300 focus:ring-gray-500",
+      "bg-transparent hover:bg-admin-50 text-admin-700 border border-admin-200 focus:ring-admin-400",
     outline:
-      "bg-transparent hover:bg-blue-50 text-blue-600 border-2 border-blue-600 focus:ring-blue-500",
+      "bg-transparent hover:bg-admin-50 text-admin-700 border border-admin-300 focus:ring-admin-500",
   };
 
   const sizeClasses = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
-    lg: "px-6 py-3 text-lg",
+    sm: "px-3 py-2 text-xs",
+    md: "px-4 py-2.5 text-sm",
+    lg: "px-5 py-3 text-base",
   };
 
   const disabledClasses = "opacity-50 cursor-not-allowed";
@@ -65,7 +65,7 @@ const Button = ({
 
   return (
     <motion.button
-      whileHover={!disabled && !loading ? { scale: 1.02, y: -1 } : {}}
+      whileHover={!disabled && !loading ? { scale: 1.01, y: -1 } : {}}
       whileTap={!disabled && !loading ? { scale: 0.98 } : {}}
       transition={{ duration: 0.1 }}
       type={type}

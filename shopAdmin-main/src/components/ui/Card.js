@@ -22,12 +22,12 @@ const Card = ({
   className = "",
   gradient = false,
 }) => {
-  const baseClasses = "bg-white rounded-xl shadow-md overflow-hidden";
+  const baseClasses = "admin-panel rounded-2xl overflow-hidden";
   const hoverClasses = hoverable
-    ? "cursor-pointer hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+    ? "cursor-pointer hover:shadow-panel transform hover:-translate-y-1 transition-all duration-300"
     : "";
   const gradientClasses = gradient
-    ? "bg-gradient-to-br from-white to-gray-50"
+    ? "bg-gradient-to-br from-white to-admin-50"
     : "";
 
   const cardContent = (
@@ -35,17 +35,21 @@ const Card = ({
       {/* Header */}
       {(title || subtitle || icon || actions) && (
         <div
-          className={`px-6 py-4 ${gradient ? "bg-gradient-to-r from-blue-50 to-indigo-50" : "border-b border-gray-200"}`}
+          className={`px-5 py-4 ${gradient ? "bg-gradient-to-r from-admin-50 to-mint-50" : "border-b border-admin-100"}`}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {icon && <div className="p-2 bg-blue-100 rounded-lg">{icon}</div>}
+              {icon && (
+                <div className="p-2 bg-admin-100 rounded-xl">{icon}</div>
+              )}
               <div>
                 {title && (
-                  <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+                  <h3 className="text-base font-semibold text-admin-900">
+                    {title}
+                  </h3>
                 )}
                 {subtitle && (
-                  <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
+                  <p className="text-sm text-admin-600 mt-1">{subtitle}</p>
                 )}
               </div>
             </div>
@@ -55,7 +59,7 @@ const Card = ({
       )}
 
       {/* Content */}
-      <div className="px-6 py-4">{children}</div>
+      <div className="px-5 py-4">{children}</div>
     </>
   );
 

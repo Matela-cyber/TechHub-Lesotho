@@ -77,6 +77,18 @@ const ORDER_STATUS = {
  */
 const STATUS_STEPS = ["Placed", "Approved", "Packed", "Shipped", "Delivered"];
 
+function getInitials(name, fallback = "U") {
+  const trimmed = (name || "").trim();
+  if (!trimmed) return fallback;
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  return (
+    parts
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || "")
+      .join("") || fallback
+  );
+}
+
 function OrderStatusTimeline({ status }) {
   const isTerminal = status === "Declined" || status === "Cancelled";
   const currentIdx = STATUS_STEPS.indexOf(status);
@@ -188,6 +200,10 @@ function MyAccount() {
     loading: wishlistHookLoading,
     removeFromWishlist: removeWishlistItem,
   } = useWishlist();
+  const profileInitials = getInitials(
+    profile.name,
+    user?.email?.[0]?.toUpperCase() || "U",
+  );
 
   useEffect(() => {
     /**
@@ -669,17 +685,16 @@ function MyAccount() {
                 className="space-y-8"
               >
                 {/* Profile content */}
-                <div className="flex flex-col md:flex-row md:items-center gap-6">
-                  {/* Profile image: Use generic User icon */}
-                  <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300 shadow-sm mb-2">
-                    <User size={56} className="text-gray-400" />
+                <div className="flex flex-col md:flex-row md:items-center gap-5">
+                  <div className="tech-avatar w-20 h-20 text-2xl border-4 border-white shadow-panel mb-2">
+                    {profileInitials}
                   </div>
 
                   <div className="flex-grow">
-                    <h2 className="text-2xl font-semibold text-gray-800">
+                    <h2 className="text-2xl font-semibold text-circuit-900">
                       {profile.name || "Welcome"}
                     </h2>
-                    <p className="text-gray-600">{profile.email}</p>
+                    <p className="text-circuit-600">{profile.email}</p>
                   </div>
                 </div>
 

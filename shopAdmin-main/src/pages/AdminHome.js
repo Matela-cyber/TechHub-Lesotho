@@ -108,7 +108,7 @@ const StatCard = ({ title, value, icon: Icon, color, trend, loading }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={{ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" }}
-      className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:border-gray-200 transition-all duration-300 overflow-hidden relative"
+      className="admin-panel rounded-[22px] p-5 border border-admin-100 hover:border-admin-200 transition-all duration-300 overflow-hidden relative"
     >
       {/* Background gradient decoration */}
       <div
@@ -117,14 +117,16 @@ const StatCard = ({ title, value, icon: Icon, color, trend, loading }) => {
 
       <div className="flex items-start justify-between relative z-10">
         <div className="flex-1">
-          <p className="text-gray-600 text-sm font-medium mb-2">{title}</p>
+          <p className="text-admin-600 text-xs font-semibold uppercase tracking-[0.18em] mb-2">
+            {title}
+          </p>
           {loading ? (
             <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" />
           ) : (
             <motion.h3
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="text-3xl font-bold text-gray-900"
+              className="text-2xl font-semibold text-admin-900"
             >
               {value}
             </motion.h3>
@@ -137,16 +139,14 @@ const StatCard = ({ title, value, icon: Icon, color, trend, loading }) => {
               className="flex items-center mt-2"
             >
               <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
-              <span className="text-sm text-green-600 font-medium">
-                {trend}
-              </span>
+              <span className="text-sm text-mint-700 font-medium">{trend}</span>
             </motion.div>
           )}
         </div>
         <motion.div
           whileHover={{ rotate: 360, scale: 1.1 }}
           transition={{ duration: 0.5 }}
-          className={`${colors.bg} p-4 rounded-xl`}
+          className={`${colors.bg} p-3.5 rounded-2xl`}
         >
           <Icon className={`w-6 h-6 ${colors.icon}`} />
         </motion.div>
@@ -828,7 +828,7 @@ const AdminHome = () => {
   const isManageRoute = location.pathname !== "/";
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="admin-shell flex h-screen bg-transparent">
       {/* Sidebar - Desktop */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -837,28 +837,29 @@ const AdminHome = () => {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="hidden lg:flex w-72 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex-col shadow-2xl"
+            className="hidden lg:flex w-64 bg-[linear-gradient(180deg,_#173454,_#11253c)] text-white flex-col shadow-panel"
           >
             {/* Logo */}
-            <div className="p-6 border-b border-gray-700">
+            <div className="p-5 border-b border-white/10">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2 }}
                 className="flex items-center gap-3"
               >
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-admin-400 to-mint-500 rounded-2xl flex items-center justify-center shadow-panel">
                   <Package className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">Shop Admin</h2>
-                  <p className="text-xs text-gray-400">Management Panel</p>
+                  <h2 className="text-lg font-semibold tracking-[0.18em] uppercase">
+                    Shop Admin
+                  </h2>
                 </div>
               </motion.div>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+            <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
               {menuItems.map((item, index) => {
                 const Icon = item.icon;
                 const isActive =
@@ -876,11 +877,11 @@ const AdminHome = () => {
                     <Link
                       to={item.path}
                       className={`
-                        flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                        flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 text-sm
                         ${
                           isActive
-                            ? "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/50 scale-105"
-                            : "hover:bg-gray-700"
+                            ? "bg-white text-admin-900 shadow-panel"
+                            : "text-slate-100 hover:bg-white/10"
                         }
                       `}
                     >
@@ -899,12 +900,12 @@ const AdminHome = () => {
             </nav>
 
             {/* Logout Button */}
-            <div className="p-4 border-t border-gray-700">
+            <div className="p-4 border-t border-white/10">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700 transition-colors duration-200"
+                className="flex items-center gap-3 w-full px-4 py-2.5 rounded-2xl bg-red-500 hover:bg-red-600 transition-colors duration-200 text-sm font-semibold"
               >
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">Logout</span>
@@ -930,17 +931,18 @@ const AdminHome = () => {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ duration: 0.3 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-72 bg-gray-900 text-white z-50 flex flex-col shadow-2xl"
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-72 bg-admin-900 text-white z-50 flex flex-col shadow-panel"
             >
               {/* Mobile Logo & Close */}
-              <div className="p-6 border-b border-gray-700 flex items-center justify-between">
+              <div className="p-5 border-b border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-admin-400 to-mint-500 rounded-2xl flex items-center justify-center shadow-panel">
                     <Package className="w-6 h-6" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold">Shop Admin</h2>
-                    <p className="text-xs text-gray-400">Management Panel</p>
+                    <h2 className="text-lg font-semibold tracking-[0.18em] uppercase">
+                      Shop Admin
+                    </h2>
                   </div>
                 </div>
                 <button onClick={() => setMobileMenuOpen(false)}>
@@ -949,7 +951,7 @@ const AdminHome = () => {
               </div>
 
               {/* Mobile Navigation */}
-              <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+              <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
                 {menuItems.map((item) => {
                   const Icon = item.icon;
                   const isActive =
@@ -963,11 +965,11 @@ const AdminHome = () => {
                       to={item.path}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`
-                        flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
+                        flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-200 text-sm
                         ${
                           isActive
-                            ? "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg"
-                            : "hover:bg-gray-700"
+                            ? "bg-white text-admin-900 shadow-panel"
+                            : "text-slate-100 hover:bg-white/10"
                         }
                       `}
                     >
@@ -979,10 +981,10 @@ const AdminHome = () => {
               </nav>
 
               {/* Mobile Logout */}
-              <div className="p-4 border-t border-gray-700">
+              <div className="p-4 border-t border-white/10">
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700 transition-colors duration-200"
+                  className="flex items-center gap-3 w-full px-4 py-2.5 rounded-2xl bg-red-500 hover:bg-red-600 transition-colors duration-200 text-sm font-semibold"
                 >
                   <LogOut className="w-5 h-5" />
                   <span className="font-medium">Logout</span>
@@ -996,28 +998,25 @@ const AdminHome = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+        <div className="bg-white/90 backdrop-blur-xl shadow-sm border-b border-admin-100 px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
+              className="lg:hidden p-2 hover:bg-admin-50 rounded-xl"
             >
               <Menu className="w-6 h-6" />
             </button>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="hidden lg:block p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="hidden lg:block p-2 hover:bg-admin-50 rounded-xl transition-colors duration-200"
             >
-              <Menu className="w-6 h-6 text-gray-600" />
+              <Menu className="w-5 h-5 text-admin-600" />
             </button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">
+              <h1 className="text-lg font-semibold text-admin-900 leading-tight">
                 {menuItems.find((item) => item.path === location.pathname)
                   ?.label || "Dashboard"}
               </h1>
-              <p className="text-sm text-gray-500">
-                Manage your store efficiently
-              </p>
             </div>
           </div>
           <div className="flex items-center gap-3 relative">
@@ -1027,10 +1026,10 @@ const AdminHome = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setNotifOpen((v) => !v)}
-                className="p-2 hover:bg-gray-100 rounded-lg relative focus:outline-none"
+                className="p-2 hover:bg-admin-50 rounded-xl relative focus:outline-none"
                 aria-label="Notifications"
               >
-                <Bell className="w-6 h-6 text-gray-600" />
+                <Bell className="w-5 h-5 text-admin-600" />
                 {unreadCount > 0 && (
                   <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-0.5 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center">
                     {unreadCount > 9 ? "9+" : unreadCount}
@@ -1052,7 +1051,7 @@ const AdminHome = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.97 }}
                       transition={{ duration: 0.18 }}
-                      className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 z-40 overflow-hidden"
+                      className="absolute right-0 mt-2 w-96 bg-white rounded-[24px] shadow-panel border border-admin-100 z-40 overflow-hidden"
                     >
                       {/* Header */}
                       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
