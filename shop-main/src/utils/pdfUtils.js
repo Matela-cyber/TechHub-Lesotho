@@ -13,9 +13,6 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import "../assets/receipt.css"; // Import enhanced receipt styling
 
-// Import shop logo
-import logoImage from "../assets/techhub-logo.png";
-
 /**
  * Generates a PDF receipt from an HTML element
  *
@@ -202,12 +199,20 @@ export const createReceiptTemplate = (order, containerId) => {
           align-items: center; 
           gap: 14px;
         ">
-          <img src="${logoImage}" alt="TechHub Lesotho Logo" style="
+          <div style="
             width: 52px;
             height: 52px;
             border-radius: 10px;
+            background: linear-gradient(135deg, #1f6feb, #0f9d8a);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-          " />
+          ">TH</div>
           <div>
             <h1 style="
               font-size: 26px;
