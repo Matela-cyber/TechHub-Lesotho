@@ -109,7 +109,14 @@ function Home() {
       >
         <div className="container mx-auto px-4 pt-6 pb-5 md:pt-8 md:pb-6">
           <div className="tech-panel relative rounded-[26px] px-5 py-6 md:px-8 md:py-8 overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(31,111,235,0.18),_transparent_24%),radial-gradient(circle_at_bottom_left,_rgba(15,157,138,0.16),_transparent_28%)]" />
+            <div
+              className="absolute inset-0 bg-cover bg-center opacity-35"
+              style={{
+                backgroundImage:
+                  'url("https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80")',
+              }}
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(110deg,_rgba(255,255,255,0.78)_0%,_rgba(245,249,255,0.7)_38%,_rgba(226,238,251,0.58)_100%),radial-gradient(circle_at_top_right,_rgba(31,111,235,0.2),_transparent_24%),radial-gradient(circle_at_bottom_left,_rgba(15,157,138,0.18),_transparent_28%)]" />
             <div className="relative z-10 grid gap-6 lg:grid-cols-[1.2fr_0.8fr] items-center">
               <div className="max-w-2xl">
                 <span className="tech-chip mb-3">TechHub Lesotho</span>
