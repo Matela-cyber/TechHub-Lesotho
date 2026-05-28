@@ -4,32 +4,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // CS-themed slate-blue palette
-        surface: {
-          50: "#f1f5f9",
-          100: "#e8edf5",
-          200: "#d1dae8",
-          300: "#a8b8d0",
-          400: "#7a90aa",
-          500: "#556880",
-          600: "#3d4f63",
-          700: "#2a3847",
-          800: "#1a2535", // main card background
-          900: "#111827", // page background
-          950: "#0a0f1a",
-        },
-        accent: {
-          50: "#ecfeff",
-          100: "#cffafe",
-          200: "#a5f3fc",
-          300: "#67e8f9",
-          400: "#22d3ee",
-          500: "#06b6d4", // primary accent (cyan)
-          600: "#0891b2",
-          700: "#0e7490",
-          800: "#155e75",
-          900: "#164e63",
-        },
         primary: {
           50: "#f0f9ff",
           100: "#e0f2fe",
@@ -54,15 +28,6 @@ module.exports = {
           800: "#1e293b",
           900: "#0f172a",
         },
-      },
-      fontFamily: {
-        mono: [
-          "JetBrains Mono",
-          "Fira Code",
-          "Cascadia Code",
-          "Consolas",
-          "monospace",
-        ],
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-out",

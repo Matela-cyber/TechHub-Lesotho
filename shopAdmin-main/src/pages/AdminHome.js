@@ -74,28 +74,28 @@ const ChartComponents = () => {
 const StatCard = ({ title, value, icon: Icon, color, trend, loading }) => {
   const colorClasses = {
     blue: {
-      bg: "bg-cyan-500/10 border border-cyan-500/20",
-      icon: "text-cyan-400",
-      gradient: "from-cyan-500 to-cyan-600",
+      bg: "bg-blue-100",
+      icon: "text-blue-600",
+      gradient: "from-blue-500 to-blue-600",
     },
     green: {
-      bg: "bg-emerald-500/10 border border-emerald-500/20",
-      icon: "text-emerald-400",
-      gradient: "from-emerald-500 to-emerald-600",
+      bg: "bg-green-100",
+      icon: "text-green-600",
+      gradient: "from-green-500 to-green-600",
     },
     purple: {
-      bg: "bg-violet-500/10 border border-violet-500/20",
-      icon: "text-violet-400",
-      gradient: "from-violet-500 to-violet-600",
+      bg: "bg-purple-100",
+      icon: "text-purple-600",
+      gradient: "from-purple-500 to-purple-600",
     },
     orange: {
-      bg: "bg-amber-500/10 border border-amber-500/20",
-      icon: "text-amber-400",
-      gradient: "from-amber-500 to-amber-600",
+      bg: "bg-orange-100",
+      icon: "text-orange-600",
+      gradient: "from-orange-500 to-orange-600",
     },
     red: {
-      bg: "bg-red-500/10 border border-red-500/20",
-      icon: "text-red-400",
+      bg: "bg-red-100",
+      icon: "text-red-600",
       gradient: "from-red-500 to-red-600",
     },
   };
@@ -108,7 +108,7 @@ const StatCard = ({ title, value, icon: Icon, color, trend, loading }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       whileHover={{ y: -5, shadow: "0 20px 40px rgba(0,0,0,0.1)" }}
-      className="bg-[#162033] rounded-2xl border border-[#1e3048] hover:border-cyan-500/25 p-6 transition-all duration-300 overflow-hidden relative"
+      className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:border-gray-200 transition-all duration-300 overflow-hidden relative"
     >
       {/* Background gradient decoration */}
       <div
@@ -117,14 +117,14 @@ const StatCard = ({ title, value, icon: Icon, color, trend, loading }) => {
 
       <div className="flex items-start justify-between relative z-10">
         <div className="flex-1">
-          <p className="text-slate-500 text-sm font-medium mb-2">{title}</p>
+          <p className="text-gray-600 text-sm font-medium mb-2">{title}</p>
           {loading ? (
-            <div className="h-8 w-24 bg-slate-700/50 animate-pulse rounded" />
+            <div className="h-8 w-24 bg-gray-200 animate-pulse rounded" />
           ) : (
             <motion.h3
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className="text-3xl font-bold text-slate-100 font-mono"
+              className="text-3xl font-bold text-gray-900"
             >
               {value}
             </motion.h3>
@@ -136,8 +136,8 @@ const StatCard = ({ title, value, icon: Icon, color, trend, loading }) => {
               transition={{ delay: 0.2 }}
               className="flex items-center mt-2"
             >
-              <TrendingUp className="w-4 h-4 text-emerald-400 mr-1" />
-              <span className="text-sm text-emerald-400 font-medium">
+              <TrendingUp className="w-4 h-4 text-green-500 mr-1" />
+              <span className="text-sm text-green-600 font-medium">
                 {trend}
               </span>
             </motion.div>
@@ -185,19 +185,19 @@ const AdminDashboard = () => {
   }, []);
 
   const COLORS = [
-    "#06b6d4",
-    "#10b981",
-    "#f59e0b",
-    "#ef4444",
-    "#8b5cf6",
-    "#ec4899",
+    "#3B82F6",
+    "#10B981",
+    "#F59E0B",
+    "#EF4444",
+    "#8B5CF6",
+    "#EC4899",
   ];
   const STATUS_COLORS = {
-    Placed: "#f59e0b",
-    Approved: "#06b6d4",
-    Shipped: "#8b5cf6",
-    Delivered: "#10b981",
-    Declined: "#ef4444",
+    Placed: "#F59E0B",
+    Approved: "#3B82F6",
+    Shipped: "#8B5CF6",
+    Delivered: "#10B981",
+    Declined: "#EF4444",
     Cancelled: "#6B7280",
   };
 
@@ -418,10 +418,10 @@ const AdminDashboard = () => {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-[#162033] p-3 shadow-xl rounded-xl border border-[#1e3048]">
-          <p className="font-semibold text-slate-200 text-sm mb-2">{label}</p>
+        <div className="bg-white p-4 shadow-xl rounded-xl border border-gray-200">
+          <p className="font-semibold text-gray-800 mb-2">{label}</p>
           {payload.map((entry, index) => (
-            <p key={index} className="text-xs" style={{ color: entry.color }}>
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
               {entry.name}:{" "}
               {entry.name === "Revenue" || entry.name === "revenue"
                 ? formatCurrency(entry.value)
@@ -501,7 +501,7 @@ const AdminDashboard = () => {
             <Card
               title="Monthly Revenue"
               subtitle="Last 6 months performance"
-              icon={<Activity className="w-5 h-5 text-cyan-400" />}
+              icon={<Activity className="w-5 h-5 text-blue-600" />}
               gradient
             >
               {monthlyRevenue.length > 0 ? (
@@ -521,31 +521,31 @@ const AdminDashboard = () => {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#06b6d4"
-                            stopOpacity={0.4}
+                            stopColor="#3B82F6"
+                            stopOpacity={0.8}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#06b6d4"
+                            stopColor="#3B82F6"
                             stopOpacity={0}
                           />
                         </linearGradient>
                       </defs>
                       <Charts.CartesianGrid
                         strokeDasharray="3 3"
-                        stroke="#1e3048"
+                        stroke="#E5E7EB"
                       />
-                      <Charts.XAxis dataKey="month" stroke="#566a80" />
+                      <Charts.XAxis dataKey="month" stroke="#6B7280" />
                       <Charts.YAxis
                         tickFormatter={(value) => formatLakhs(value)}
-                        stroke="#566a80"
+                        stroke="#6B7280"
                       />
                       <Charts.Tooltip content={<CustomTooltip />} />
                       <Charts.Area
                         type="monotone"
                         dataKey="revenue"
                         name="Revenue"
-                        stroke="#06b6d4"
+                        stroke="#3B82F6"
                         fillOpacity={1}
                         fill="url(#colorRevenue)"
                       />
@@ -553,7 +553,7 @@ const AdminDashboard = () => {
                   </Charts.ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center py-10 text-slate-500">
+                <p className="text-center py-10 text-gray-500">
                   No revenue data available
                 </p>
               )}
@@ -569,7 +569,7 @@ const AdminDashboard = () => {
             <Card
               title="Order Status"
               subtitle="Current distribution"
-              icon={<Package className="w-5 h-5 text-violet-400" />}
+              icon={<Package className="w-5 h-5 text-purple-600" />}
               gradient
             >
               {statusDistribution.length > 0 ? (
@@ -604,7 +604,7 @@ const AdminDashboard = () => {
                   </Charts.ResponsiveContainer>
                 </div>
               ) : (
-                <p className="text-center py-10 text-slate-500">
+                <p className="text-center py-10 text-gray-500">
                   No order data available
                 </p>
               )}
@@ -624,7 +624,7 @@ const AdminDashboard = () => {
           <Card
             title="Top Selling Products"
             subtitle="Best performers"
-            icon={<TrendingUp className="w-5 h-5 text-emerald-400" />}
+            icon={<TrendingUp className="w-5 h-5 text-green-600" />}
             gradient
           >
             {productPerformance.length > 0 ? (
@@ -635,19 +635,19 @@ const AdminDashboard = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 * index }}
-                    className="flex items-center justify-between p-3 bg-[#111c2d] rounded-lg hover:bg-[#1e3048]/60 transition-colors duration-200 border border-[#1e3048]"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 bg-cyan-500/10 border border-cyan-500/20 rounded-full flex items-center justify-center">
-                        <span className="text-cyan-400 font-bold text-xs font-mono">
+                      <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-bold text-sm">
                           {index + 1}
                         </span>
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-200 text-sm">
+                        <p className="font-semibold text-gray-800">
                           {product.name}
                         </p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-sm text-gray-500">
                           {product.quantity} units sold
                         </p>
                       </div>
@@ -694,18 +694,18 @@ const AdminDashboard = () => {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.1 * index }}
-                    className="flex items-center justify-between p-3 bg-[#111c2d] rounded-lg hover:bg-[#1e3048]/60 transition-colors duration-200 border border-[#1e3048]"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
                   >
                     <div>
-                      <p className="font-semibold text-slate-200 text-sm">
+                      <p className="font-semibold text-gray-800">
                         {order.orderId || order.id.substring(0, 8)}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-sm text-gray-500">
                         {order.userName || order.userEmail}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-slate-200 text-sm">
+                      <p className="font-semibold text-gray-800">
                         {formatCurrency(order.total)}
                       </p>
                       <Badge
@@ -793,20 +793,20 @@ const AdminHome = () => {
   const getStatusColor = (status) => {
     switch ((status || "").toLowerCase()) {
       case "placed":
-        return "bg-amber-500/10 text-amber-400 border border-amber-500/20";
+        return "bg-yellow-100 text-yellow-700";
       case "approved":
-        return "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20";
+        return "bg-blue-100 text-blue-700";
       case "packed":
-        return "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20";
+        return "bg-indigo-100 text-indigo-700";
       case "shipped":
-        return "bg-violet-500/10 text-violet-400 border border-violet-500/20";
+        return "bg-purple-100 text-purple-700";
       case "delivered":
-        return "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+        return "bg-green-100 text-green-700";
       case "declined":
       case "cancelled":
-        return "bg-red-500/10 text-red-400 border border-red-500/20";
+        return "bg-red-100 text-red-700";
       default:
-        return "bg-slate-700/50 text-slate-400 border border-slate-600/40";
+        return "bg-gray-100 text-gray-700";
     }
   };
 
@@ -828,7 +828,7 @@ const AdminHome = () => {
   const isManageRoute = location.pathname !== "/";
 
   return (
-    <div className="flex h-screen bg-[#0d1421]">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar - Desktop */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -837,32 +837,28 @@ const AdminHome = () => {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="hidden lg:flex w-64 bg-[#111c2d] text-white flex-col border-r border-[#1e3048]"
+            className="hidden lg:flex w-72 bg-gradient-to-b from-gray-900 to-gray-800 text-white flex-col shadow-2xl"
           >
             {/* Logo */}
-            <div className="p-5 border-b border-[#1e3048]">
+            <div className="p-6 border-b border-gray-700">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2 }}
                 className="flex items-center gap-3"
               >
-                <div className="w-9 h-9 bg-cyan-500/10 border border-cyan-500/30 rounded-lg flex items-center justify-center">
-                  <Package className="w-5 h-5 text-cyan-400" />
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                  <Package className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-slate-100 tracking-wide">
-                    TechHub Admin
-                  </h2>
-                  <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
-                    Management Panel
-                  </p>
+                  <h2 className="text-xl font-bold">Shop Admin</h2>
+                  <p className="text-xs text-gray-400">Management Panel</p>
                 </div>
               </motion.div>
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
               {menuItems.map((item, index) => {
                 const Icon = item.icon;
                 const isActive =
@@ -880,20 +876,20 @@ const AdminHome = () => {
                     <Link
                       to={item.path}
                       className={`
-                        flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm
+                        flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                         ${
                           isActive
-                            ? "bg-cyan-500/10 border border-cyan-500/25 text-cyan-400"
-                            : "text-slate-400 hover:bg-slate-700/40 hover:text-slate-100 border border-transparent"
+                            ? "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/50 scale-105"
+                            : "hover:bg-gray-700"
                         }
                       `}
                     >
-                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <Icon className="w-5 h-5" />
                       <span className="font-medium">{item.label}</span>
                       {isActive && (
                         <motion.div
                           layoutId="activeIndicator"
-                          className="ml-auto w-1.5 h-1.5 bg-cyan-400 rounded-full"
+                          className="ml-auto w-2 h-2 bg-white rounded-full"
                         />
                       )}
                     </Link>
@@ -903,14 +899,14 @@ const AdminHome = () => {
             </nav>
 
             {/* Logout Button */}
-            <div className="p-3 border-t border-[#1e3048]">
+            <div className="p-4 border-t border-gray-700">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleLogout}
-                className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 hover:text-red-300 transition-colors duration-200 text-sm"
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700 transition-colors duration-200"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-5 h-5" />
                 <span className="font-medium">Logout</span>
               </motion.button>
             </div>
@@ -934,33 +930,26 @@ const AdminHome = () => {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ duration: 0.3 }}
-              className="lg:hidden fixed left-0 top-0 bottom-0 w-64 bg-[#111c2d] text-white z-50 flex flex-col border-r border-[#1e3048]"
+              className="lg:hidden fixed left-0 top-0 bottom-0 w-72 bg-gray-900 text-white z-50 flex flex-col shadow-2xl"
             >
               {/* Mobile Logo & Close */}
-              <div className="p-5 border-b border-[#1e3048] flex items-center justify-between">
+              <div className="p-6 border-b border-gray-700 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-cyan-500/10 border border-cyan-500/30 rounded-lg flex items-center justify-center">
-                    <Package className="w-5 h-5 text-cyan-400" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <Package className="w-6 h-6" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-slate-100">
-                      TechHub Admin
-                    </h2>
-                    <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase">
-                      Management Panel
-                    </p>
+                    <h2 className="text-xl font-bold">Shop Admin</h2>
+                    <p className="text-xs text-gray-400">Management Panel</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-slate-400 hover:text-slate-200"
-                >
-                  <X className="w-5 h-5" />
+                <button onClick={() => setMobileMenuOpen(false)}>
+                  <X className="w-6 h-6" />
                 </button>
               </div>
 
               {/* Mobile Navigation */}
-              <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+              <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
                 {menuItems.map((item) => {
                   const Icon = item.icon;
                   const isActive =
@@ -974,15 +963,15 @@ const AdminHome = () => {
                       to={item.path}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`
-                        flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm border
+                        flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
                         ${
                           isActive
-                            ? "bg-cyan-500/10 border-cyan-500/25 text-cyan-400"
-                            : "border-transparent text-slate-400 hover:bg-slate-700/40 hover:text-slate-100"
+                            ? "bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg"
+                            : "hover:bg-gray-700"
                         }
                       `}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="w-5 h-5" />
                       <span className="font-medium">{item.label}</span>
                     </Link>
                   );
@@ -990,12 +979,12 @@ const AdminHome = () => {
               </nav>
 
               {/* Mobile Logout */}
-              <div className="p-3 border-t border-[#1e3048]">
+              <div className="p-4 border-t border-gray-700">
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500/20 transition-colors duration-200 text-sm"
+                  className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700 transition-colors duration-200"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-5 h-5" />
                   <span className="font-medium">Logout</span>
                 </button>
               </div>
@@ -1007,27 +996,27 @@ const AdminHome = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Bar */}
-        <div className="bg-[#111c2d] border-b border-[#1e3048] px-6 py-3.5 flex items-center justify-between">
+        <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="lg:hidden p-2 hover:bg-slate-700/50 rounded-lg text-slate-400"
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6" />
             </button>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="hidden lg:block p-2 hover:bg-slate-700/50 rounded-lg transition-colors duration-200 text-slate-400"
+              className="hidden lg:block p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-6 h-6 text-gray-600" />
             </button>
             <div>
-              <h1 className="text-lg font-bold text-slate-100">
+              <h1 className="text-2xl font-bold text-gray-800">
                 {menuItems.find((item) => item.path === location.pathname)
                   ?.label || "Dashboard"}
               </h1>
-              <p className="text-xs text-slate-500 font-mono">
-                // manage your store
+              <p className="text-sm text-gray-500">
+                Manage your store efficiently
               </p>
             </div>
           </div>
@@ -1038,9 +1027,10 @@ const AdminHome = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setNotifOpen((v) => !v)}
-                className="p-2 hover:bg-slate-700/50 rounded-lg relative focus:outline-none text-slate-400 hover:text-slate-200"
+                className="p-2 hover:bg-gray-100 rounded-lg relative focus:outline-none"
+                aria-label="Notifications"
               >
-                <Bell className="w-5 h-5" />
+                <Bell className="w-6 h-6 text-gray-600" />
                 {unreadCount > 0 && (
                   <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-0.5 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center">
                     {unreadCount > 9 ? "9+" : unreadCount}
@@ -1062,7 +1052,7 @@ const AdminHome = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: -10, scale: 0.97 }}
                       transition={{ duration: 0.18 }}
-                      className="absolute right-0 mt-2 w-96 bg-[#162033] rounded-2xl border border-[#1e3048] shadow-[0_8px_40px_rgba(0,0,0,0.5)] z-40 overflow-hidden"
+                      className="absolute right-0 mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 z-40 overflow-hidden"
                     >
                       {/* Header */}
                       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gray-50">
@@ -1085,9 +1075,9 @@ const AdminHome = () => {
                       </div>
 
                       {/* List */}
-                      <div className="max-h-[420px] overflow-y-auto divide-y divide-[#1e3048]">
+                      <div className="max-h-[420px] overflow-y-auto divide-y divide-gray-50">
                         {notifications.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                          <div className="flex flex-col items-center justify-center py-12 text-gray-400">
                             <Bell className="w-10 h-10 mb-3 opacity-30" />
                             <p className="text-sm">No notifications yet</p>
                           </div>
@@ -1112,16 +1102,16 @@ const AdminHome = () => {
                                   setNotifOpen(false);
                                   window.location.href = "/orders";
                                 }}
-                                className={`flex items-start gap-3 px-5 py-4 cursor-pointer hover:bg-cyan-500/5 transition-colors ${
-                                  isRead ? "opacity-50" : "bg-[#162033]"
+                                className={`flex items-start gap-3 px-5 py-4 cursor-pointer hover:bg-blue-50 transition-colors ${
+                                  isRead ? "opacity-60" : "bg-white"
                                 }`}
                               >
-                                <div className="flex-shrink-0 w-9 h-9 rounded-full bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
-                                  <ShoppingBag className="w-4 h-4 text-cyan-400" />
+                                <div className="flex-shrink-0 w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
+                                  <ShoppingBag className="w-4 h-4 text-blue-600" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2 flex-wrap">
-                                    <p className="text-sm font-semibold text-slate-200 truncate">
+                                    <p className="text-sm font-semibold text-gray-800 truncate">
                                       Order #
                                       {notif.orderId ||
                                         notif.id.substring(0, 8)}
@@ -1132,17 +1122,17 @@ const AdminHome = () => {
                                       {notif.status || "Unknown"}
                                     </span>
                                     {!isRead && (
-                                      <span className="w-2 h-2 rounded-full bg-cyan-400 inline-block" />
+                                      <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
                                     )}
                                   </div>
-                                  <p className="text-xs text-slate-500 mt-0.5">
+                                  <p className="text-xs text-gray-500 mt-0.5">
                                     {notif.userName ||
                                       notif.userEmail ||
                                       "Customer"}
                                     {dateStr && <> &middot; {dateStr}</>}
                                   </p>
                                   {notif.totalAmount != null && (
-                                    <p className="text-xs font-medium text-slate-300 mt-0.5">
+                                    <p className="text-xs font-medium text-gray-700 mt-0.5">
                                       M
                                       {Number(notif.totalAmount).toLocaleString(
                                         "en-LS",
@@ -1158,13 +1148,13 @@ const AdminHome = () => {
                       </div>
 
                       {/* Footer */}
-                      <div className="px-5 py-3 border-t border-[#1e3048] bg-[#111c2d] text-center">
+                      <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 text-center">
                         <button
                           onClick={() => {
                             setNotifOpen(false);
                             window.location.href = "/orders";
                           }}
-                          className="text-sm text-cyan-400 font-medium hover:underline"
+                          className="text-sm text-blue-600 font-medium hover:underline"
                         >
                           View all orders →
                         </button>
@@ -1178,7 +1168,7 @@ const AdminHome = () => {
         </div>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-y-auto p-6 bg-[#0d1421]">
+        <div className="flex-1 overflow-y-auto p-6">
           {!isManageRoute && location.pathname === "/" ? (
             <AdminDashboard />
           ) : (

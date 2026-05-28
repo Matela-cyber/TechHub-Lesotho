@@ -25,23 +25,23 @@ const Button = ({
   className = "",
 }) => {
   const baseClasses =
-    "font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-offset-[#111c2d]";
+    "font-semibold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2";
 
   const variantClasses = {
     primary:
-      "bg-cyan-600 hover:bg-cyan-500 text-white focus:ring-cyan-500 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.15)]",
+      "bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 shadow-lg hover:shadow-xl",
     secondary:
-      "bg-slate-700 hover:bg-slate-600 text-slate-100 focus:ring-slate-500 border border-slate-600",
+      "bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500 shadow-lg hover:shadow-xl",
     success:
-      "bg-emerald-700 hover:bg-emerald-600 text-white focus:ring-emerald-500 border border-emerald-600/40",
+      "bg-green-600 hover:bg-green-700 text-white focus:ring-green-500 shadow-lg hover:shadow-xl",
     danger:
-      "bg-red-700 hover:bg-red-600 text-white focus:ring-red-500 border border-red-600/40",
+      "bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-lg hover:shadow-xl",
     warning:
-      "bg-amber-600 hover:bg-amber-500 text-white focus:ring-amber-500 border border-amber-500/40",
+      "bg-yellow-500 hover:bg-yellow-600 text-white focus:ring-yellow-500 shadow-lg hover:shadow-xl",
     ghost:
-      "bg-transparent hover:bg-slate-700/50 text-slate-300 border border-slate-600/60 focus:ring-slate-500",
+      "bg-transparent hover:bg-gray-100 text-gray-700 border-2 border-gray-300 focus:ring-gray-500",
     outline:
-      "bg-transparent hover:bg-cyan-500/10 text-cyan-400 border border-cyan-500/40 focus:ring-cyan-500",
+      "bg-transparent hover:bg-blue-50 text-blue-600 border-2 border-blue-600 focus:ring-blue-500",
   };
 
   const sizeClasses = {
