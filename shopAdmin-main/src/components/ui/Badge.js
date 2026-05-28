@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React from "react";
+import { motion } from "framer-motion";
 
 /**
  * Badge Component
@@ -11,35 +11,39 @@ import { motion } from 'framer-motion';
  * @param {boolean} pulse - Pulse animation
  */
 const Badge = ({
-  variant = 'default',
-  size = 'md',
+  variant = "default",
+  size = "md",
   children,
   icon,
   dot = false,
   pulse = false,
-  className = ''
+  className = "",
 }) => {
   const variantClasses = {
-    success: 'bg-green-100 text-green-800 border-green-200',
-    danger: 'bg-red-100 text-red-800 border-red-200',
-    warning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    info: 'bg-blue-100 text-blue-800 border-blue-200',
-    default: 'bg-gray-100 text-gray-800 border-gray-200',
-    purple: 'bg-purple-100 text-purple-800 border-purple-200',
-    pink: 'bg-pink-100 text-pink-800 border-pink-200',
-    indigo: 'bg-indigo-100 text-indigo-800 border-indigo-200'
+    success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/25",
+    danger: "bg-red-500/10 text-red-400 border-red-500/25",
+    warning: "bg-amber-500/10 text-amber-400 border-amber-500/25",
+    info: "bg-cyan-500/10 text-cyan-400 border-cyan-500/25",
+    default: "bg-slate-700/50 text-slate-300 border-slate-600/40",
+    purple: "bg-violet-500/10 text-violet-400 border-violet-500/25",
+    pink: "bg-pink-500/10 text-pink-400 border-pink-500/25",
+    indigo: "bg-indigo-500/10 text-indigo-400 border-indigo-500/25",
   };
 
   const sizeClasses = {
-    sm: 'text-xs px-2 py-0.5',
-    md: 'text-sm px-3 py-1',
-    lg: 'text-base px-4 py-1.5'
+    sm: "text-xs px-2 py-0.5",
+    md: "text-sm px-3 py-1",
+    lg: "text-base px-4 py-1.5",
   };
 
   const badgeContent = (
-    <span className={`inline-flex items-center gap-1.5 font-semibold rounded-full border ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 font-semibold rounded-full border ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+    >
       {dot && (
-        <span className={`w-2 h-2 rounded-full ${pulse ? 'animate-pulse' : ''} ${variant === 'success' ? 'bg-green-500' : variant === 'danger' ? 'bg-red-500' : variant === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'}`} />
+        <span
+          className={`w-2 h-2 rounded-full ${pulse ? "animate-pulse" : ""} ${variant === "success" ? "bg-green-500" : variant === "danger" ? "bg-red-500" : variant === "warning" ? "bg-yellow-500" : "bg-blue-500"}`}
+        />
       )}
       {icon && icon}
       {children}
@@ -53,7 +57,7 @@ const Badge = ({
         transition={{
           duration: 1.5,
           repeat: Infinity,
-          ease: 'easeInOut'
+          ease: "easeInOut",
         }}
         className="inline-block"
       >

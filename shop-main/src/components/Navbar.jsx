@@ -179,60 +179,65 @@ export default function Navbar() {
       <nav
         className={`
           fixed top-0 left-0 right-0 z-50
-          transition-all duration-300 backdrop-blur-md
-          hidden md:block {/* Hidden on mobile, block on md and larger */}
-          ${isScrolled ? "bg-white/95 shadow-lg" : "bg-white/50"}
+          transition-all duration-300 backdrop-blur-md border-b
+          hidden md:block
+          ${
+            isScrolled
+              ? "bg-[#111827]/98 border-cyan-500/20 shadow-[0_4px_24px_rgba(0,0,0,0.5)]"
+              : "bg-[#0f1623]/90 border-slate-700/40"
+          }
         `}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex-shrink-0">
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="h-10 w-10 flex items-center justify-center bg-gray-200 rounded-full text-2xl font-bold text-gray-700">
+              <Link to="/" className="flex items-center space-x-2.5 group">
+                <div className="h-9 w-9 flex items-center justify-center bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-lg font-bold text-cyan-400 font-mono group-hover:border-cyan-400/60 transition-colors">
                   T
                 </div>
-                <span className="font-bold text-xl text-gray-800">
-                  TechHub Lesotho
-                </span>
+                <div className="flex flex-col leading-none">
+                  <span className="font-bold text-base text-slate-100 tracking-wide">
+                    TechHub
+                  </span>
+                  <span className="text-[10px] font-mono text-cyan-500 tracking-widest uppercase">
+                    Lesotho
+                  </span>
+                </div>
               </Link>
             </div>
 
             {/* Desktop Navigation Links */}
-            <div className="hidden md:flex items-center space-x-8">
-              {mainNavItems.map(
-                (
-                  item, // Changed to mainNavItems
-                ) => (
-                  <div key={item.name} className="relative">
-                    <Link
-                      to={item.href}
-                      className={classNames(
-                        location.pathname === item.href // Using exact match for home if needed elsewhere
-                          ? "text-blue-600"
-                          : "text-gray-700 hover:text-blue-600",
-                        "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200",
-                      )}
-                    >
-                      <item.icon className="h-5 w-5 mr-1.5" />
-                      {item.name}
-                      {location.pathname === item.href && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />
-                      )}
-                    </Link>
-                  </div>
-                ),
-              )}
+            <div className="hidden md:flex items-center space-x-1">
+              {mainNavItems.map((item) => (
+                <div key={item.name} className="relative">
+                  <Link
+                    to={item.href}
+                    className={classNames(
+                      location.pathname === item.href
+                        ? "text-cyan-400 bg-cyan-500/10"
+                        : "text-slate-400 hover:text-slate-100 hover:bg-slate-700/50",
+                      "flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                    )}
+                  >
+                    <item.icon className="h-4 w-4 mr-1.5" />
+                    {item.name}
+                    {location.pathname === item.href && (
+                      <div className="absolute bottom-0 left-2 right-2 h-0.5 bg-cyan-400 rounded-full" />
+                    )}
+                  </Link>
+                </div>
+              ))}
             </div>
 
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4">
               <div className="relative">
                 <Link
                   to="/cart"
-                  className="text-gray-700 hover:text-blue-600 transition-colors"
+                  className="text-slate-400 hover:text-cyan-400 transition-colors"
                 >
                   <ShoppingBagIcon className="h-6 w-6" />
                   {cartItemCount > 0 && (
-                    <div className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    <div className="absolute -top-2 -right-2 bg-cyan-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-mono font-semibold">
                       {cartItemCount}
                     </div>
                   )}
@@ -244,17 +249,17 @@ export default function Navbar() {
                   <Menu as="div" className="relative inline-block text-left">
                     <div>
                       <div>
-                        <Menu.Button className="flex items-center space-x-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        <Menu.Button className="flex items-center space-x-2 rounded-lg px-2 py-1 hover:bg-slate-700/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-colors">
                           {profilePic && !profilePic.includes("defaultpfp") ? (
                             <img
-                              className="h-9 w-9 rounded-full object-cover ring-2 ring-white"
+                              className="h-8 w-8 rounded-full object-cover ring-2 ring-cyan-500/30"
                               src={profilePic}
                               alt={userName}
                             />
                           ) : (
-                            <UserCircleIcon className="h-9 w-9 text-gray-400 ring-2 ring-white rounded-full bg-gray-100" />
+                            <UserCircleIcon className="h-8 w-8 text-slate-400" />
                           )}
-                          <span className="text-sm font-medium text-gray-700">
+                          <span className="text-sm font-medium text-slate-300">
                             {userName}
                           </span>
                         </Menu.Button>
@@ -270,17 +275,19 @@ export default function Navbar() {
                       leaveFrom="transform opacity-100 scale-100"
                       leaveTo="transform opacity-0 scale-95"
                     >
-                      <Menu.Items className="absolute right-0 mt-2 w-48 origin-top-right rounded-xl bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                      <Menu.Items className="absolute right-0 mt-2 w-52 origin-top-right rounded-xl bg-[#1a2535] border border-slate-600/60 py-1 shadow-[0_8px_32px_rgba(0,0,0,0.5)] focus:outline-none z-50">
                         <Menu.Item>
                           {({ active }) => (
                             <Link
                               to="/my-account"
                               className={classNames(
-                                active ? "bg-gray-50" : "",
-                                "flex items-center px-4 py-2 text-sm text-gray-700",
+                                active
+                                  ? "bg-slate-700/60 text-cyan-400"
+                                  : "text-slate-300",
+                                "flex items-center px-4 py-2 text-sm transition-colors",
                               )}
                             >
-                              <UserCircleIcon className="mr-3 h-5 w-5 text-gray-400" />
+                              <UserCircleIcon className="mr-3 h-5 w-5 text-slate-400" />
                               My Account
                             </Link>
                           )}
@@ -290,11 +297,13 @@ export default function Navbar() {
                             <Link
                               to="/wishlist"
                               className={classNames(
-                                active ? "bg-gray-50" : "",
-                                "flex items-center px-4 py-2 text-sm text-gray-700",
+                                active
+                                  ? "bg-slate-700/60 text-cyan-400"
+                                  : "text-slate-300",
+                                "flex items-center px-4 py-2 text-sm transition-colors",
                               )}
                             >
-                              <HeartIcon className="mr-3 h-5 w-5 text-gray-400" />
+                              <HeartIcon className="mr-3 h-5 w-5 text-slate-400" />
                               My Wishlist
                             </Link>
                           )}
@@ -304,12 +313,14 @@ export default function Navbar() {
                             <button
                               onClick={handleSignOut}
                               className={classNames(
-                                active ? "bg-gray-50" : "",
-                                "flex w-full items-center px-4 py-2 text-sm text-gray-700",
+                                active
+                                  ? "bg-red-500/10 text-red-400"
+                                  : "text-slate-300",
+                                "flex w-full items-center px-4 py-2 text-sm transition-colors",
                               )}
                             >
                               <svg
-                                className="mr-3 h-5 w-5 text-gray-400"
+                                className="mr-3 h-5 w-5 text-slate-400"
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
@@ -330,23 +341,19 @@ export default function Navbar() {
                   </Menu>
                 </div>
               ) : (
-                <div className="flex items-center space-x-4">
-                  <div>
-                    <Link
-                      to="/signin"
-                      className="text-gray-700 hover:text-blue-600 px-4 py-2 text-sm font-medium rounded-lg transition-colors"
-                    >
-                      Sign in
-                    </Link>
-                  </div>
-                  <div>
-                    <Link
-                      to="/signup"
-                      className="bg-blue-600 text-white px-4 py-2 text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
-                    >
-                      Sign up
-                    </Link>
-                  </div>
+                <div className="flex items-center space-x-3">
+                  <Link
+                    to="/signin"
+                    className="text-slate-400 hover:text-slate-100 px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="bg-cyan-600 text-white px-4 py-1.5 text-sm font-medium rounded-lg hover:bg-cyan-500 transition-colors border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.2)]"
+                  >
+                    Sign up
+                  </Link>
                 </div>
               )}
             </div>
@@ -358,7 +365,7 @@ export default function Navbar() {
       <div className="hidden md:block h-16"></div>
 
       {/* Bottom Tab Navigation (for mobile) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#111827]/98 border-t border-slate-700/60 shadow-[0_-4px_24px_rgba(0,0,0,0.4)] z-50 backdrop-blur-md">
         <div className="max-w-md mx-auto flex justify-around items-center h-16 px-2">
           {bottomNavItems.map((item) => (
             <Link
@@ -370,8 +377,8 @@ export default function Navbar() {
                     location.pathname.startsWith(item.href) &&
                     item.href !== "/") ||
                   (item.href === "/" && location.pathname === "/")
-                  ? "text-blue-600 scale-110" // Active state: blue text and slightly larger icon/text
-                  : "text-gray-500 hover:text-blue-500",
+                  ? "text-cyan-400"
+                  : "text-slate-500 hover:text-slate-300",
                 "flex flex-col items-center justify-center flex-1 pt-1 pb-1 text-xs font-medium transition-all duration-150 ease-in-out focus:outline-none",
               )}
               onClick={() => {
@@ -386,16 +393,16 @@ export default function Navbar() {
                     <img
                       src={profilePic}
                       alt={userName}
-                      className="h-6 w-6 mb-0.5 rounded-full object-cover ring-1 ring-gray-200"
+                      className="h-6 w-6 mb-0.5 rounded-full object-cover ring-1 ring-cyan-500/40"
                     />
                   ) : (
-                    <UserCircleIcon className="h-6 w-6 mb-0.5 text-gray-500" />
+                    <UserCircleIcon className="h-6 w-6 mb-0.5" />
                   )
                 ) : (
                   <item.icon className="h-6 w-6 mb-0.5" />
                 )}
                 {item.name === "Cart" && item.count > 0 && (
-                  <span className="absolute -top-1 -right-2.5 bg-blue-600 text-white text-[10px] font-semibold w-4 h-4 rounded-full flex items-center justify-center ring-1 ring-white">
+                  <span className="absolute -top-1 -right-2.5 bg-cyan-500 text-white text-[10px] font-mono font-semibold w-4 h-4 rounded-full flex items-center justify-center">
                     {item.count > 9 ? "9+" : item.count}
                   </span>
                 )}
